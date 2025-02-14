@@ -1,0 +1,38 @@
+:not(:defined) {
+  visibility: hidden;
+}
+
+body {
+  font-family: 'Roboto', serif;
+}
+
+.slide-left {
+  transition: all 0.3s ease-out;
+}
+
+.slide-right {
+  transition: all 0.3s ease-out;
+}
+
+.login-card {
+  width: 60%;
+  height: 124px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  margin-top: 50%;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  cursor: pointer;
+  padding: 0 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
