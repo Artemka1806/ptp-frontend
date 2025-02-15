@@ -6,14 +6,10 @@ export const useUserStore = defineStore('user', () => {
 
   const setUser = (newUser) => {
     user.value = newUser
-    localStorage.setItem('user', JSON.stringify(newUser))
   }
 
   const getUser = () => {
-    const user = localStorage.getItem('user')
-    if (user) {
-      setUser(JSON.parse(user))
-    }
+    return user.value
   }
 
   return { user, setUser, getUser }

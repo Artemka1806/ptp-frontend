@@ -36,9 +36,9 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-  let haveUser = localStorage.getItem('user')
+  let haveToken = localStorage.getItem('token')
   if (
-    !haveUser &&
+    !haveToken &&
     (to.name !== 'login' && to.name !== 'signup')
   ) {
     return { name: 'login' }

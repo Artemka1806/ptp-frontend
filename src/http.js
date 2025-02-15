@@ -1,4 +1,5 @@
 import axios from 'axios';
+import router from './router';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -12,7 +13,6 @@ $api.interceptors.request.use((config) => {
   return config;
 });
 
-// Add response interceptor to handle token exchange on specific 404 error
 $api.interceptors.response.use(
   response => response,
   async error => {
@@ -26,7 +26,11 @@ $api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       try {
-        await exchange();
+        let exchangeData = await exchange();
+        if (exchangeData.status != 200) {
+          localStorage.removeItem("token");
+          return router.push('login');
+        }
         originalRequest.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
         return $api(originalRequest);
       } catch (e) {
@@ -59,7 +63,9 @@ export const login = (credentials) => {
 };
 
 export const exchange = () => {
-  return $api.post('/v1/auth/exchange')
+  return $api.post('/v1/auth/exchange', {}, {
+    validateStatus: () => true
+  })
     .then(response => {
       if (response.data && response.data.token) {
         localStorage.setItem("token", response.data.token);
