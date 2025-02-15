@@ -1,0 +1,13 @@
+version: '3.3'
+services:
+  ptp-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ptp-frontend:latest
+    container_name: ptp-frontend
+    ports:
+      - '5173:80'
+    env_file:
+      - .env
+    restart: unless-stopped
