@@ -33,6 +33,7 @@ function installPWA() {
   </main>
   <FooterComponent />
   <div class="background-container" v-if="showInstallButton">
+    <h1>Щоб продовжити треба встановити додаток або додати сайт на початковий екран</h1>
     <mdui-button full-width @click="installPWA" class="install-button"
       >Встановити додаток</mdui-button
     >
