@@ -48,6 +48,8 @@ const promptPwaInstall = usePwaInstall()
 const installPwa = async () => {
   await promptPwaInstall()
 }
+
+await installPwa()
 </script>
 
 <template>
@@ -88,11 +90,6 @@ const installPwa = async () => {
         <div class="stat-label">Рівень світла</div>
       </div>
     </mdui-card>
-  </div>
-
-  <!-- A button to trigger the PWA installation prompt -->
-  <div style="text-align: center; margin-top: 20px">
-    <button @click="installPwa">Install App</button>
   </div>
 </template>
 
