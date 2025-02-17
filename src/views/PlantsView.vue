@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { getUserPlants } from '@/http'
 import 'mdui/components/card.js'
+import 'mdui/components/fab.js'
 
 const plants = ref([])
 const statistics = ref({
@@ -42,47 +43,65 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="header-container">
-    <div class="plant-header">
-      <div class="plant-icon">
-        <span>🌱</span>
+  <div class="plant-container" v-if="plants.length > 0">
+    <div class="header-container">
+      <div class="plant-header">
+        <div class="plant-icon">
+          <span>🌱</span>
+        </div>
+        <div class="plant-name">{{ statistics.name }}</div>
       </div>
-      <div class="plant-name">{{ statistics.name }}</div>
+    </div>
+
+    <div class="stats-container">
+      <mdui-card class="stat-card temperature" outline>
+        <div class="card-content">
+          <div class="stat-value">{{ statistics.temperature }}°C</div>
+          <div class="stat-label">Температура</div>
+        </div>
+      </mdui-card>
+
+      <mdui-card class="stat-card humidity" outline>
+        <div class="card-content">
+          <div class="stat-value">{{ statistics.humidity }}%</div>
+          <div class="stat-label">Вологість повітря</div>
+        </div>
+      </mdui-card>
+
+      <mdui-card class="stat-card soil-moisture" outline>
+        <div class="card-content">
+          <div class="stat-value">{{ statistics.soil_moisture }}%</div>
+          <div class="stat-label">Вологість ґрунту</div>
+        </div>
+      </mdui-card>
+
+      <mdui-card class="stat-card light-level" outline>
+        <div class="card-content">
+          <div class="stat-value">{{ statistics.light_level }} lx</div>
+          <div class="stat-label">Рівень світла</div>
+        </div>
+      </mdui-card>
     </div>
   </div>
-
-  <div class="stats-container">
-    <mdui-card class="stat-card temperature" outline>
-      <div class="card-content">
-        <div class="stat-value">{{ statistics.temperature }}°C</div>
-        <div class="stat-label">Температура</div>
-      </div>
-    </mdui-card>
-
-    <mdui-card class="stat-card humidity" outline>
-      <div class="card-content">
-        <div class="stat-value">{{ statistics.humidity }}%</div>
-        <div class="stat-label">Вологість повітря</div>
-      </div>
-    </mdui-card>
-
-    <mdui-card class="stat-card soil-moisture" outline>
-      <div class="card-content">
-        <div class="stat-value">{{ statistics.soil_moisture }}%</div>
-        <div class="stat-label">Вологість ґрунту</div>
-      </div>
-    </mdui-card>
-
-    <mdui-card class="stat-card light-level" outline>
-      <div class="card-content">
-        <div class="stat-value">{{ statistics.light_level }} lx</div>
-        <div class="stat-label">Рівень світла</div>
-      </div>
-    </mdui-card>
+  <div class="no-plants" v-else>
+    <mdui-card class="card"><span>У вас немає рослин</span></mdui-card>
   </div>
+  <!-- <mdui-fab extended icon="edit">Compose</mdui-fab> -->
 </template>
 
 <style>
+.no-plants .card {
+  display: flex;
+  margin: auto;
+  margin-top: 20px;
+  padding: 20px;
+  text-align: center;
+  font-size: 20px;
+  background-color: #f0fbf0;
+  color: #15803d;
+  border: 1px solid rgba(21, 128, 61, 0.15);
+}
+
 .header-container {
   padding: 40px 20px 30px;
   display: flex;
@@ -100,7 +119,7 @@ onUnmounted(() => {
 .plant-icon {
   width: 46px;
   height: 46px;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgb(var(--mdui-color-surface-container-high-dark));
   border-radius: 50%;
   display: flex;
   align-items: center;

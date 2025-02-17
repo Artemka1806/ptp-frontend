@@ -1,5 +1,5 @@
 <template>
-  <mdui-navigation-bar :value="$route.path">
+  <mdui-navigation-bar class="footer" :value="$route.path">
     <mdui-navigation-bar-item
       icon="place"
       value="/plants"
