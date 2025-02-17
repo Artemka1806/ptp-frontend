@@ -2,7 +2,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { getUserPlants } from '@/http'
 import 'mdui/components/card.js'
-import usePwaInstall from '@/pwa-install'
 
 const plants = ref([])
 const statistics = ref({
@@ -40,22 +39,6 @@ onMounted(() => {
 onUnmounted(() => {
   if (intervalId) clearInterval(intervalId)
 })
-
-// Get the prompt function from the PWA install module.
-const promptPwaInstall = usePwaInstall()
-
-// Call this function based on a user interaction.
-const installPwa = async () => {
-  await promptPwaInstall()
-}
-
-let pwaInstalled = localStorage.getItem('pwaInstalled') === 'yes'
-if (!pwaInstalled) {
-  let p = prompt('Встановити додаток на головний екран?')
-  if (p) {
-    installPwa()
-  }
-}
 </script>
 
 <template>
