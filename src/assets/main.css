@@ -4,6 +4,8 @@
 
 body {
   font-family: 'Roboto', serif;
+  max-width: 500px;
+  margin: auto;
 }
 
 .slide-left {

@@ -30,6 +30,7 @@ const fetchPlants = async () => {
 }
 
 let intervalId = null
+
 onMounted(() => {
   fetchPlants()
   intervalId = setInterval(fetchPlants, 20000)
@@ -41,76 +42,141 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <h2 class="plant-title">{{ statistics.name }}</h2>
+  <div class="header-container">
+    <div class="plant-header">
+      <div class="plant-icon">
+        <span>🌱</span>
+      </div>
+      <div class="plant-name">{{ statistics.name }}</div>
+    </div>
+  </div>
+
   <div class="stats-container">
-    <mdui-card class="stat-card temperature">
-      <div class="stat-value">{{ statistics.temperature }}°C</div>
-      <div class="stat-label">Temperature</div>
+    <mdui-card class="stat-card temperature" outline>
+      <div class="card-content">
+        <div class="stat-value">{{ statistics.temperature }}°C</div>
+        <div class="stat-label">Температура</div>
+      </div>
     </mdui-card>
 
-    <mdui-card class="stat-card humidity">
-      <div class="stat-value">{{ statistics.humidity }}%</div>
-      <div class="stat-label">Humidity</div>
+    <mdui-card class="stat-card humidity" outline>
+      <div class="card-content">
+        <div class="stat-value">{{ statistics.humidity }}%</div>
+        <div class="stat-label">Вологість повітря</div>
+      </div>
     </mdui-card>
 
-    <mdui-card class="stat-card soil-moisture">
-      <div class="stat-value">{{ statistics.soil_moisture }}%</div>
-      <div class="stat-label">Soil Moisture</div>
+    <mdui-card class="stat-card soil-moisture" outline>
+      <div class="card-content">
+        <div class="stat-value">{{ statistics.soil_moisture }}%</div>
+        <div class="stat-label">Вологість ґрунту</div>
+      </div>
     </mdui-card>
 
-    <mdui-card class="stat-card light-level">
-      <div class="stat-value">{{ statistics.light_level }} lx</div>
-      <div class="stat-label">Light Level</div>
+    <mdui-card class="stat-card light-level" outline>
+      <div class="card-content">
+        <div class="stat-value">{{ statistics.light_level }} lx</div>
+        <div class="stat-label">Рівень світла</div>
+      </div>
     </mdui-card>
   </div>
 </template>
 
 <style>
+.header-container {
+  padding: 40px 20px 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.plant-header {
+  display: flex;
+  align-items: center;
+  max-width: 800px;
+  width: 100%;
+}
+
+.plant-icon {
+  width: 46px;
+  height: 46px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  font-size: 24px;
+}
+
+.plant-name {
+  font-size: 36px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
 .stats-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 16px;
   padding: 20px;
-  justify-content: center;
-  margin: auto;
-}
-
-.plant-title {
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  margin-top: -15px;
 }
 
 .stat-card {
-  padding: 20px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: bold;
-  border-radius: 10px;
-  color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
 }
 
 .temperature {
-  background-color: #ff6b6b;
+  background-color: #fff5f5;
+  color: #b91c1c;
+  border: 1px solid rgba(185, 28, 28, 0.15);
 }
+
 .humidity {
-  background-color: #4dabf7;
+  background-color: #f0f7ff;
+  color: #1e40af;
+  border: 1px solid rgba(30, 64, 175, 0.15);
 }
+
 .soil-moisture {
-  background-color: #51cf66;
+  background-color: #f0fbf0;
+  color: #15803d;
+  border: 1px solid rgba(21, 128, 61, 0.15);
 }
+
 .light-level {
-  background-color: #f59f00;
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid rgba(180, 83, 9, 0.15);
 }
 
 .stat-value {
   font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 4px;
 }
 
 .stat-label {
-  margin-top: 8px;
-  font-size: 16px;
-  text-transform: capitalize;
+  font-size: 14px;
+  opacity: 0.85;
 }
 </style>
