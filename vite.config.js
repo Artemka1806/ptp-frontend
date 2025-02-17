@@ -10,8 +10,8 @@ export default defineConfig({
     vue({
       template: {
         compilerOptions: {
-          // Treat all tags starting with mdui- as mdui components
-          isCustomElement: (tag) => tag.startsWith('mdui-')
+          // Treat all tags starting with mdui- as mdui components and pwa-install as a custom element
+          isCustomElement: (tag) => tag.startsWith('mdui-') || tag === 'pwa-install'
         }
       }
     }),
