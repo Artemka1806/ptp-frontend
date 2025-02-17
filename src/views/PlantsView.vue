@@ -51,7 +51,7 @@ const installPwa = async () => {
 
 let pwaInstalled = localStorage.getItem('pwaInstalled') === 'yes'
 if (!pwaInstalled) {
-  let p = confirm('Встановити додаток на головний екран?')
+  let p = prompt('Встановити додаток на головний екран?')
   if (p) {
     installPwa()
   }
