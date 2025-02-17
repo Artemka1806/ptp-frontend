@@ -1,5 +1,7 @@
 {
   "name": "Pet The Plant",
+  "short_name": "Pet The Plant",
+  "start_url": "/",
   "icons": [
     {
       "src": "windows11/SmallTile.scale-100.png",
