@@ -1,5 +1,4 @@
 <script setup>
-import { ref, onMounted } from 'vue'
 import 'mdui/mdui.css'
 import FooterComponent from './components/FooterComponent.vue'
 import { RouterView } from 'vue-router'
@@ -7,24 +6,6 @@ import { setColorScheme } from 'mdui/functions/setColorScheme.js'
 import 'mdui/components/button.js'
 
 setColorScheme('#78dc77')
-
-const deferredPrompt = ref(null)
-const showInstallButton = ref(false)
-
-onMounted(() => {
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault()
-    deferredPrompt.value = e
-    showInstallButton.value = true
-  })
-})
-
-function installPWA() {
-  if (!deferredPrompt.value) return
-  deferredPrompt.value.prompt()
-  deferredPrompt.value = null
-  showInstallButton.value = false
-}
 </script>
 
 <template>
