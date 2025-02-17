@@ -61,7 +61,7 @@
   "lang": "ua",
   "shortcuts": [
     {
-      "name": "Plants",
+      "name": "Рослини",
       "url": "/plants",
       "icons": [
         {
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "name": "Profile",
+      "name": "Профіль",
       "url": "/profile",
       "icons": [
         {
