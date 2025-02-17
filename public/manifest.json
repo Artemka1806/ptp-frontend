@@ -1,5 +1,10 @@
 {
   "name": "Pet The Plant",
+  "display": "standalone",
+  "orientation": "portrait",
+  "description": "Pet The Plant",
+  "theme_color": "#1a1c19",
+  "background_color": "#1a1c19",
   "short_name": "Pet The Plant",
   "start_url": "/",
   "icons": [
