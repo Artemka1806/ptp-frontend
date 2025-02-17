@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section class="auth-section">
     <h2>Реєстрація</h2>
     <form class="signup-form" @submit.prevent="signupFunc">
       <mdui-text-field name="name" label="Ім'я" required></mdui-text-field>

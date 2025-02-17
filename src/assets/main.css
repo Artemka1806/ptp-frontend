@@ -38,3 +38,7 @@ form {
   flex-direction: column;
   align-items: start;
 }
+
+.auth-section {
+  padding: 10px 20px;
+}

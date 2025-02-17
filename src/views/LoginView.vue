@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section class="auth-section">
     <h2>Вхід</h2>
     <form class="login-form" @submit.prevent="loginFunc">
       <mdui-text-field name="email" label="Email" type="email" required></mdui-text-field>
