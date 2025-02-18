@@ -93,28 +93,44 @@ onUnmounted(() => {
     <div class="stats-container">
       <mdui-card class="stat-card temperature" outline>
         <div class="card-content">
-          <div class="stat-value">{{ statistics.temperature }}°C</div>
+          <div class="stat-value">
+            <transition name="fade" mode="out-in">
+              <span :key="statistics.temperature">{{ statistics.temperature }}°C</span>
+            </transition>
+          </div>
           <div class="stat-label">Температура</div>
         </div>
       </mdui-card>
 
       <mdui-card class="stat-card humidity" outline>
         <div class="card-content">
-          <div class="stat-value">{{ statistics.humidity }}%</div>
+          <div class="stat-value">
+            <transition name="fade" mode="out-in">
+              <span :key="statistics.humidity">{{ statistics.humidity }}%</span>
+            </transition>
+          </div>
           <div class="stat-label">Вологість повітря</div>
         </div>
       </mdui-card>
 
       <mdui-card class="stat-card soil-moisture" outline>
         <div class="card-content">
-          <div class="stat-value">{{ statistics.soil_moisture }}%</div>
+          <div class="stat-value">
+            <transition name="fade" mode="out-in">
+              <span :key="statistics.soil_moisture">{{ statistics.soil_moisture }}%</span>
+            </transition>
+          </div>
           <div class="stat-label">Вологість ґрунту</div>
         </div>
       </mdui-card>
 
       <mdui-card class="stat-card light-level" outline>
         <div class="card-content">
-          <div class="stat-value">{{ statistics.light_level }} lx</div>
+          <div class="stat-value">
+            <transition name="fade" mode="out-in">
+              <span :key="statistics.light_level">{{ statistics.light_level }} lx</span>
+            </transition>
+          </div>
           <div class="stat-label">Рівень світла</div>
         </div>
       </mdui-card>
@@ -234,5 +250,15 @@ onUnmounted(() => {
 .stat-label {
   font-size: 14px;
   opacity: 0.85;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
