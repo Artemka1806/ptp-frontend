@@ -3,6 +3,8 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import 'mdui/components/card.js'
 import 'mdui/components/fab.js'
 import { exchange } from '../http'
+import '@mdui/icons/add.js'
+import router from '@/router'
 
 const plants = ref([])
 const statistics = ref({
@@ -66,6 +68,10 @@ const fetchPlants = () => {
   wsConnection.onclose = (event) => {
     console.log('WebSocket-з’єднання закрито:', event)
   }
+}
+
+const addPlant = () => {
+  router.push('/add-plant')
 }
 
 onMounted(() => {
@@ -137,12 +143,22 @@ onUnmounted(() => {
     </div>
   </div>
   <div class="no-plants" v-else>
-    <mdui-card class="card"><span>У вас немає рослин</span></mdui-card>
+    <mdui-card class="card"><span>У Вас немає рослин</span></mdui-card>
+    <mdui-fab size="large" class="button" @click="addPlant"
+      ><mdui-icon-add slot="icon"></mdui-icon-add
+    ></mdui-fab>
   </div>
-  <!-- <mdui-fab extended icon="edit">Compose</mdui-fab> -->
 </template>
 
 <style>
+.no-plants {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
 .no-plants .card {
   display: flex;
   margin: auto;
@@ -153,6 +169,11 @@ onUnmounted(() => {
   background-color: #f0fbf0;
   color: #15803d;
   border: 1px solid rgba(21, 128, 61, 0.15);
+  width: 80%;
+}
+
+.no-plants .button {
+  margin-top: 200px;
 }
 
 .header-container {
