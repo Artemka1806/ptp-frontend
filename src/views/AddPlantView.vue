@@ -1,5 +1,12 @@
 <template>
-  <qrcode-stream @detect="onDetect" :track="paintBoundingBox" :paused="paused"></qrcode-stream>
+  <div class="container">
+    <qrcode-stream
+      @detect="onDetect"
+      :track="paintBoundingBox"
+      :paused="paused"
+      class="qr-scanner"
+    ></qrcode-stream>
+  </div>
 </template>
 <script setup>
 import { ref } from 'vue'
@@ -17,10 +24,15 @@ const paintBoundingBox = (detectedCodes, ctx) => {
       boundingBox: { x, y, width, height },
     } = detectedCode
 
-    ctx.lineWidth = 5
+    ctx.lineWidth = 4
     ctx.strokeStyle = '#78dc77'
     ctx.strokeRect(x, y, width, height)
   }
   // alert(result.value)
 }
 </script>
+<style scoped>
+.container {
+  margin-top: 50%;
+}
+</style>
