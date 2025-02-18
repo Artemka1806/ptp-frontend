@@ -32,7 +32,6 @@ export default {
 <script setup>
 import 'mdui/components/text-field.js'
 import 'mdui/components/button.js'
-import { alert } from 'mdui/functions/alert.js'
 import { useUserStore } from '@/stores/user'
 import router from '@/router'
 import { login, getMe } from '@/http'
@@ -59,12 +58,7 @@ const loginFunc = async (event) => {
       }
       router.push({ name: 'profile' })
     } else {
-      alert({
-        headline: 'Помилка',
-        description: 'Невірний email або пароль',
-        confirmText: 'OK',
-        onConfirm: () => console.log('confirmed'),
-      })
+      alert('Невірний email або пароль')
     }
   } catch (error) {
     console.error(error)

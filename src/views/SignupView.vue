@@ -46,7 +46,6 @@ export default {
 import 'mdui/components/text-field.js'
 import 'mdui/components/button.js'
 import router from '@/router'
-import { alert } from 'mdui/functions/alert.js'
 import { signup, getMe } from '@/http'
 import { useUserStore } from '@/stores/user'
 
