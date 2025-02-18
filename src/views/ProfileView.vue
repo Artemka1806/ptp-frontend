@@ -19,7 +19,6 @@
 <script setup>
 import { computed } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { getMe } from '@/http'
 import 'mdui/components/avatar.js'
 import 'mdui/components/button.js'
 import '@mdui/icons/logout.js'
@@ -30,24 +29,9 @@ const initial = computed(() => {
   return userStore.user.name ? userStore.user.name[0] : ''
 })
 
-const getUser = async () => {
-  try {
-    const response = await getMe()
-    if (response && response.data) {
-      userStore.setUser(response.data)
-      console.log('User data set:', response.data)
-    }
-    return response
-  } catch (error) {
-    console.error(error)
-  }
-}
-
 const logout = () => {
   userStore.logout()
 }
-
-getUser()
 </script>
 
 <style scoped>

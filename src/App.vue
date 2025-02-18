@@ -6,8 +6,23 @@ import { setColorScheme } from 'mdui/functions/setColorScheme.js'
 import 'mdui/components/button.js'
 import '@khmyznikov/pwa-install'
 import { useUserStore } from './stores/user'
+import { getMe } from '@/http'
 
 const userStore = useUserStore()
+
+const getUser = async () => {
+  try {
+    const response = await getMe()
+    if (response && response.data) {
+      userStore.setUser(response.data)
+    }
+    return response
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+getUser()
 
 setColorScheme('#78dc77')
 </script>
