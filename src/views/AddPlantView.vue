@@ -33,6 +33,6 @@ const paintBoundingBox = (detectedCodes, ctx) => {
 </script>
 <style scoped>
 .container {
-  margin-top: 50%;
+  margin-top: 10%;
 }
 </style>
