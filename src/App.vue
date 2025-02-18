@@ -5,6 +5,9 @@ import { RouterView } from 'vue-router'
 import { setColorScheme } from 'mdui/functions/setColorScheme.js'
 import 'mdui/components/button.js'
 import '@khmyznikov/pwa-install'
+import { useUserStore } from './stores/user'
+
+const userStore = useUserStore()
 
 setColorScheme('#78dc77')
 </script>
@@ -13,7 +16,7 @@ setColorScheme('#78dc77')
   <main>
     <RouterView />
   </main>
-  <FooterComponent />
+  <FooterComponent v-if="userStore.user.email" />
   <pwa-install
     disable-close="true"
     install-description="Встановіть веб-додаток для доступу до повного функціоналу"

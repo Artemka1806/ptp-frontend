@@ -1,20 +1,23 @@
 <template>
-  <div class="profile-container" v-if="userStore.user">
+  <div class="profile-container" v-if="userStore.user.name">
     <div class="avatar-container">
-      <mdui-avatar class="avatar">{{ userStore.user.name[0] }}</mdui-avatar>
+      <mdui-avatar class="avatar">{{ initial }}</mdui-avatar>
     </div>
     <div class="user-info">
-      <div class="user-name">{{ userStore.user.name }}</div>
+      <div class="user-name">{{ userStore.user.name || 'No Name' }}</div>
       <div class="user-email">{{ userStore.user.email }}</div>
     </div>
     <div class="logout-container">
-      <mdui-button @click="logout"
-        ><mdui-icon-logout slot="icon"></mdui-icon-logout>Вийти з акаунту</mdui-button
-      >
+      <mdui-button @click="logout">
+        <mdui-icon-logout slot="icon"></mdui-icon-logout>
+        Вийти з акаунту
+      </mdui-button>
     </div>
   </div>
 </template>
+
 <script setup>
+import { computed } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { getMe } from '@/http'
 import 'mdui/components/avatar.js'
@@ -23,11 +26,16 @@ import '@mdui/icons/logout.js'
 
 const userStore = useUserStore()
 
+const initial = computed(() => {
+  return userStore.user.name ? userStore.user.name[0] : ''
+})
+
 const getUser = async () => {
   try {
     const response = await getMe()
     if (response && response.data) {
       userStore.setUser(response.data)
+      console.log('User data set:', response.data)
     }
     return response
   } catch (error) {
@@ -41,6 +49,7 @@ const logout = () => {
 
 getUser()
 </script>
+
 <style scoped>
 .profile-container {
   display: flex;

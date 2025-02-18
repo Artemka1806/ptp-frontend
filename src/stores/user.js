@@ -1,19 +1,19 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { reactive } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
-  const user = ref({})
+  const user = reactive({})
 
   const setUser = (newUser) => {
-    user.value = newUser
+    Object.assign(user, newUser)
   }
 
   const getUser = () => {
-    return user.value
+    return user
   }
 
   const logout = () => {
-    user.value = {}
+    Object.keys(user).forEach(key => delete user[key])
     localStorage.removeItem('token')
     document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
     window.location.href = '/login'
