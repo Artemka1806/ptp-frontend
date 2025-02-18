@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { getUserPlants } from '@/http'
 import 'mdui/components/card.js'
 import 'mdui/components/fab.js'
+import { exchange } from '../http'
 
 const plants = ref([])
 const statistics = ref({
@@ -13,32 +13,69 @@ const statistics = ref({
   light_level: 0,
 })
 
-const fetchPlants = async () => {
+let wsConnection = null
+
+const updateTokenAndReconnect = async () => {
   try {
-    const response = await getUserPlants()
-    if (response?.data?.plants?.length > 0) {
-      plants.value = response.data.plants
-      const stat = response.data.plants[0].statistics
-      statistics.value.name = response.data.plants[0].name
-      statistics.value.temperature = Number(stat.temperature)
-      statistics.value.humidity = Number(stat.humidity)
-      statistics.value.soil_moisture = Number(stat.soil_moisture)
-      statistics.value.light_level = Number(stat.light_level)
+    const exchangeData = await exchange()
+    if (exchangeData.status === 200) {
+      console.log('Token оновлено, повторно підключаємось до WebSocket...')
+      if (wsConnection) {
+        wsConnection.close()
+      }
+      fetchPlants()
+    } else {
+      localStorage.removeItem('token')
+      console.error('Token exchange failed, please login again.')
     }
   } catch (error) {
-    console.error(error)
+    console.error('Token update failed:', error)
   }
 }
 
-let intervalId = null
+const fetchPlants = () => {
+  const token = localStorage.getItem('token')
+  wsConnection = new WebSocket(import.meta.env.VITE_WS_API_URL + `/v1/user/plants?token=${token}`)
+
+  wsConnection.onopen = () => {
+    console.log('WebSocket-з’єднання встановлено')
+  }
+
+  wsConnection.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data)
+      if (data?.plants && data.plants.length > 0) {
+        plants.value = data.plants
+        const stat = data.plants[0].statistics
+        statistics.value.name = data.plants[0].name
+        statistics.value.temperature = Number(stat.temperature)
+        statistics.value.humidity = Number(stat.humidity)
+        statistics.value.soil_moisture = Number(stat.soil_moisture)
+        statistics.value.light_level = Number(stat.light_level)
+      }
+    } catch (error) {
+      console.error('Помилка обробки даних з WebSocket:', error)
+    }
+  }
+
+  wsConnection.onerror = (error) => {
+    console.error('Помилка WebSocket:', error)
+    updateTokenAndReconnect()
+  }
+
+  wsConnection.onclose = (event) => {
+    console.log('WebSocket-з’єднання закрито:', event)
+  }
+}
 
 onMounted(() => {
   fetchPlants()
-  intervalId = setInterval(fetchPlants, 20000)
 })
 
 onUnmounted(() => {
-  if (intervalId) clearInterval(intervalId)
+  if (wsConnection) {
+    wsConnection.close()
+  }
 })
 </script>
 
