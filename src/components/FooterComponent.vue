@@ -32,6 +32,7 @@ import 'mdui/components/navigation-bar-item.js'
 import '@mdui/icons/local-florist--outlined.js'
 import '@mdui/icons/local-florist.js'
 import '@mdui/icons/person--outlined.js'
+import '@mdui/icons/person.js'
 import '@mdui/icons/add-box--outlined.js'
 import '@mdui/icons/add-box.js'
 </script>
