@@ -29,8 +29,8 @@ const initial = computed(() => {
   return userStore.user.name ? userStore.user.name[0] : ''
 })
 
-const logout = () => {
-  userStore.logout()
+const logout = async () => {
+  await userStore.logout()
 }
 </script>
 

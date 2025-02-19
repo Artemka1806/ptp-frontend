@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { reactive } from 'vue'
+import router from '@/router'
+import { logout as logoutApi } from '@/http'
 
 export const useUserStore = defineStore('user', () => {
   const user = reactive({})
@@ -12,12 +14,16 @@ export const useUserStore = defineStore('user', () => {
     return user
   }
 
-  const logout = () => {
-    localStorage.removeItem('token')
-    document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-    window.location.href = '/login'
-    Object.keys(user).forEach(key => delete user[key])
-    console.log(user)
+  const logout = async () => {
+    try {
+      await logoutApi()
+      Object.keys(user).forEach(key => delete user[key])
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+      Object.keys(user).forEach(key => delete user[key])
+      router.push('/login')
+    }
   }
 
   return { user, setUser, getUser, logout }

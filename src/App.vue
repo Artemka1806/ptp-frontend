@@ -7,6 +7,7 @@ import 'mdui/components/button.js'
 import '@khmyznikov/pwa-install'
 import { useUserStore } from './stores/user'
 import { getMe } from '@/http'
+import { computed } from 'vue'
 
 const userStore = useUserStore()
 
@@ -25,13 +26,15 @@ const getUser = async () => {
 getUser()
 
 setColorScheme('#78dc77')
+
+const isUserLoggedIn = computed(() => !!userStore.user.email)
 </script>
 
 <template>
   <main>
     <RouterView />
   </main>
-  <FooterComponent v-if="userStore.user.email" />
+  <FooterComponent v-if="isUserLoggedIn" />
   <pwa-install
     disable-close="true"
     install-description="Встановіть веб-додаток для доступу до повного функціоналу"

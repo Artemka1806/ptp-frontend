@@ -74,6 +74,21 @@ export const exchange = () => {
     });
 };
 
+export const logout = () => {
+  return $api.post('/v1/auth/logout', {}, {
+    withCredentials: true,
+    validateStatus: () => true
+  })
+    .then(response => {
+      localStorage.removeItem("token");
+      return response;
+    })
+    .catch(error => {
+      localStorage.removeItem("token");
+      throw error;
+    });
+};
+
 // User endpoints
 export const getMe = () => {
   return $api.get('/v1/user/me');
