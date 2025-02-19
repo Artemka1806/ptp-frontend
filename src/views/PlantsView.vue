@@ -2,13 +2,14 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import 'mdui/components/card.js'
 import 'mdui/components/fab.js'
-import { exchange } from '../http'
+import { exchange, deletePlantByCode } from '../http'
 import '@mdui/icons/add.js'
 import router from '@/router'
 
 const plants = ref([])
 const statistics = ref({
   name: '',
+  code: '',
   temperature: 0,
   humidity: 0,
   soil_moisture: 0,
@@ -50,6 +51,7 @@ const fetchPlants = () => {
         plants.value = data.plants
         const stat = data.plants[0].statistics
         statistics.value.name = data.plants[0].name
+        statistics.value.code = data.plants[0].code
         statistics.value.temperature = Number(stat.temperature)
         statistics.value.humidity = Number(stat.humidity)
         statistics.value.soil_moisture = Number(stat.soil_moisture)
@@ -74,6 +76,25 @@ const addPlant = () => {
   router.push('/add-plant')
 }
 
+const deletePlant = (code) => {
+  deletePlantByCode(code)
+    .then(() => {
+      plants.value = []
+      statistics.value = {
+        name: '',
+        code: '',
+        temperature: 0,
+        humidity: 0,
+        soil_moisture: 0,
+        light_level: 0,
+      }
+      fetchPlants()
+    })
+    .catch((error) => {
+      console.error('Помилка видалення рослини:', error)
+    })
+}
+
 onMounted(() => {
   fetchPlants()
 })
@@ -93,6 +114,9 @@ onUnmounted(() => {
           <span>🌱</span>
         </div>
         <div class="plant-name">{{ statistics.name }}</div>
+        <div class="plant-icon delete-icon" @click="deletePlant(statistics.code)">
+          <span>🗑️</span>
+        </div>
       </div>
     </div>
 
@@ -200,6 +224,11 @@ onUnmounted(() => {
   justify-content: center;
   margin-right: 20px;
   font-size: 24px;
+}
+
+.delete-icon {
+  margin-left: auto;
+  cursor: pointer;
 }
 
 .plant-name {

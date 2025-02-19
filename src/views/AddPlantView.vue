@@ -10,12 +10,33 @@
 </template>
 <script setup>
 import { ref } from 'vue'
+import { prompt } from 'mdui/functions/prompt.js'
+import { createPlant } from '@/http'
+import router from '@/router'
 
-const paused = ref(false)
 const result = ref('')
+const paused = ref(false)
 
 const onDetect = async (detectedCodes) => {
-  result.value = JSON.stringify(detectedCodes.map((code) => code.rawValue))
+  result.value = detectedCodes[0]?.rawValue || ''
+  if (result.value) {
+    paused.value = true
+    try {
+      prompt({
+        title: 'Назва рослини',
+        description: `Введіть назву для ${result.value}`,
+        onConfirm: async (value) => {
+          await createPlant({ name: value, code: result.value })
+          router.push({ name: 'plants' })
+        },
+        onCancel: () => {
+          paused.value = false
+        },
+      })
+    } catch (error) {
+      console.error(error)
+    }
+  }
 }
 
 const paintBoundingBox = (detectedCodes, ctx) => {

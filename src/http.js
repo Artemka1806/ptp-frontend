@@ -111,3 +111,7 @@ export const updatePlantByCode = (code, plantStats) => {
   return $api.put(`/v1/plant/${code}`, plantStats);
 };
 
+export const deletePlantByCode = (code) => {
+  return $api.delete(`/v1/plant/${code}`);
+}
+
