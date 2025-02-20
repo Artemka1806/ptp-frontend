@@ -40,9 +40,11 @@
 
 <script>
 import { changeTab } from '@/utils'
+import { handleGoogleAuth } from '@/auth'
 export default {
   methods: {
     changeTab,
+    handleGoogleAuth,
   },
 }
 </script>
