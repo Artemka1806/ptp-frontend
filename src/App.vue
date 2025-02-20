@@ -41,7 +41,7 @@ const isUserLoggedIn = computed(() => !!userStore.user.email)
     disable-screenshots="true"
     manifest-url="/manifest.json"
     name="Pet The Plant"
-    description="Pet The Plant — це веб-додаток для догляду за рослинами"
+    description="Pet The Plant - Making plant care smarter 🪴"
     icon="/icons/icon-128x128.png"
   >
   </pwa-install>
