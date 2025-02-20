@@ -36,7 +36,6 @@ const isUserLoggedIn = computed(() => !!userStore.user.email)
   </main>
   <FooterComponent v-if="isUserLoggedIn" />
   <pwa-install
-    disable-close="true"
     install-description="Встановіть веб-додаток для доступу до повного функціоналу"
     disable-install-description="true"
     disable-screenshots="true"
