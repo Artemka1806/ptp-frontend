@@ -20,24 +20,6 @@
       >
         Зареєструватися
       </mdui-button>
-      <div
-        id="g_id_onload"
-        data-client_id="331151039682-3r1p3ce2fu77aepfs5439r1r23vbuu4c.apps.googleusercontent.com"
-        data-context="use"
-        data-ux_mode="popup"
-        data-callback="handleGoogleAuth"
-        data-auto_prompt="false"
-      ></div>
-
-      <div
-        class="g_id_signin"
-        data-type="standard"
-        data-shape="pill"
-        data-theme="filled_black"
-        data-text="continue_with"
-        data-size="large"
-        data-logo_alignment="left"
-      ></div>
       <span style="user-select: none; text-align: center; margin: auto; margin-top: 10px">
         Уже є акаунт?
         <span
