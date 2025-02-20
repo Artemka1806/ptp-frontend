@@ -63,18 +63,6 @@ VITE_API_URL=http://localhost:8000
 VITE_WS_URL=ws://localhost:8000/ws
 ```
 
-## Project Structure
-
-```
-src/
-├── assets/      # Static assets
-├── components/  # Reusable Vue components
-├── router/      # Vue Router configuration
-├── stores/      # Pinia stores
-├── views/       # Page components
-└── App.vue      # Root component
-```
-
 ## Contributing
 
 1. Fork the repository
