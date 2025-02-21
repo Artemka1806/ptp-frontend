@@ -24,7 +24,7 @@ const onDetect = async (detectedCodes) => {
     try {
       prompt({
         title: 'Назва рослини',
-        description: `Введіть назву для ${result.value}`,
+        description: `Введіть назву Вашої рослини`,
         onConfirm: async (value) => {
           await createPlant({ name: value, code: result.value })
           router.push({ name: 'plants' })
