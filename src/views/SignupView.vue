@@ -4,18 +4,6 @@
     <form class="signup-form" @submit.prevent="signupFunc">
       <mdui-text-field name="name" label="Ім'я" required></mdui-text-field>
       <mdui-text-field name="email" label="Email" type="email" required></mdui-text-field>
-      <mdui-radio-group name="sex" value="male">
-        <mdui-radio value="male">Чоловік</mdui-radio>
-        <mdui-radio value="female">Жінка</mdui-radio>
-      </mdui-radio-group>
-      <mdui-text-field
-        name="yearOfBirth"
-        label="Рік народження"
-        type="number"
-        :min="1900"
-        :max="new Date().getFullYear()"
-        required
-      ></mdui-text-field>
       <mdui-text-field name="password" label="Пароль" type="password" required></mdui-text-field>
       <mdui-text-field
         name="confirmPassword"
@@ -74,8 +62,6 @@ const signupFunc = async (event) => {
   const formData = new FormData(form)
   const name = formData.get('name')
   const email = formData.get('email')
-  const sex = formData.get('sex')
-  const yearOfBirth = parseInt(formData.get('yearOfBirth'))
   const password = formData.get('password')
   const confirmPassword = formData.get('confirmPassword')
 
@@ -84,17 +70,9 @@ const signupFunc = async (event) => {
     return
   }
 
-  const currentYear = new Date().getFullYear()
-  if (yearOfBirth < 1900 || yearOfBirth > currentYear) {
-    alert(`Рік народження має бути між 1900 та ${currentYear}`)
-    return
-  }
-
   const payload = {
     name,
     email,
-    sex,
-    year_of_birth: yearOfBirth,
     password,
   }
 
