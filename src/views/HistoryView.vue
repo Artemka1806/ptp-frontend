@@ -1,46 +1,44 @@
 <template>
-  <div>
-    <div v-if="loading">Loading...</div>
-    <div v-else class="history-container">
-      <h1>Plant History</h1>
-
+  <div class="history-container">
+    <div v-if="loading" class="loading">Завантаження...</div>
+    <div v-else>
       <div class="chart-section">
-        <h2>Statistics Over Time</h2>
+        <h2>Статистика за весь час</h2>
         <PlantStatsChart :historyData="planHistoryArray" />
       </div>
 
       <div class="data-section">
-        <h2>Raw Data</h2>
-        <table v-if="planHistoryArray.length > 0" class="history-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Temperature (°C)</th>
-              <th>Humidity (%)</th>
-              <th>Soil Moisture (%)</th>
-              <th>Light Level</th>
-              <th>Updates</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="entry in planHistoryArray" :key="entry._id">
-              <td>{{ formatDate(entry.date) }}</td>
-              <td>{{ parseFloat(entry.statistics.temperature).toFixed(1) }}</td>
-              <td>{{ parseFloat(entry.statistics.humidity).toFixed(1) }}</td>
-              <td>{{ parseFloat(entry.statistics.soil_moisture).toFixed(1) }}</td>
-              <td>{{ parseFloat(entry.statistics.light_level).toFixed(1) }}</td>
-              <td>{{ entry.update_count }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <p v-else>No history data available</p>
+        <h2>Необроблені дані</h2>
+        <div class="table-container">
+          <table v-if="planHistoryArray.length > 0" class="history-table">
+            <thead>
+              <tr>
+                <th>Дата</th>
+                <th>Температура (°C)</th>
+                <th>Вологість повітря (%)</th>
+                <th>Вологість ґрунту (%)</th>
+                <th>Рівень освітлення</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="entry in planHistoryArray" :key="entry._id">
+                <td>{{ formatDate(entry.date) }}</td>
+                <td>{{ parseFloat(entry.statistics.temperature).toFixed(1) }}</td>
+                <td>{{ parseFloat(entry.statistics.humidity).toFixed(1) }}</td>
+                <td>{{ parseFloat(entry.statistics.soil_moisture).toFixed(1) }}</td>
+                <td>{{ parseFloat(entry.statistics.light_level).toFixed(1) }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p v-else class="no-data">Дані історії відсутні</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { getPlanHistoryByCode, getUserPlants } from '@/http'
 import PlantStatsChart from '@/components/PlantStatsChart.vue' // Import the chart component
@@ -51,7 +49,6 @@ const planHistoryArray = ref([])
 const plant = ref({})
 const loading = ref(true)
 
-// Format date for display
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return date.toLocaleDateString()
@@ -89,37 +86,63 @@ onMounted(async () => {
   padding: 20px;
 }
 
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
 .chart-section,
 .data-section {
   margin-bottom: 30px;
-  padding: 15px;
-  border-radius: 8px;
-  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: rgb(var(--mdui-color-surface-container));
+}
+
+h2 {
+  color: #78dc77;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.table-container {
+  overflow-x: auto;
 }
 
 .history-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 15px;
+  background-color: rgb(var(--mdui-color-surface-container-high));
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .history-table th,
 .history-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
+  padding: 12px;
   text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .history-table th {
-  background-color: #f2f2f2;
-  font-weight: bold;
+  background-color: rgba(120, 220, 119, 0.1);
+  color: #78dc77;
+  font-weight: 500;
 }
 
-.history-table tr:nth-child(even) {
-  background-color: #f9f9f9;
+.history-table td {
+  color: rgba(255, 255, 255, 0.87);
 }
 
 .history-table tr:hover {
-  background-color: #f1f1f1;
+  background-color: rgba(120, 220, 119, 0.05);
+}
+
+.no-data {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 2rem;
 }
 </style>

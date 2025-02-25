@@ -1,12 +1,12 @@
 <template>
   <div class="chart-container">
     <Line v-if="chartData.datasets.length > 0" :data="chartData" :options="chartOptions" />
-    <div v-else>No data available</div>
+    <div v-else></div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -52,30 +52,30 @@ const chartData = computed(() => {
     labels,
     datasets: [
       {
-        label: 'Temperature (°C)',
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        borderColor: 'rgba(255, 99, 132, 1)',
+        label: 'Температура (°C)',
+        backgroundColor: 'rgba(120, 220, 119, 0.1)',
+        borderColor: '#78dc77',
         data: sortedData.map((item) => parseFloat(item.statistics.temperature)),
         tension: 0.4,
       },
       {
-        label: 'Humidity (%)',
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        borderColor: 'rgba(54, 162, 235, 1)',
+        label: 'Вологість повітря (%)',
+        backgroundColor: 'rgba(120, 220, 119, 0.1)',
+        borderColor: '#5fb75e',
         data: sortedData.map((item) => parseFloat(item.statistics.humidity)),
         tension: 0.4,
       },
       {
-        label: 'Soil Moisture (%)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        borderColor: 'rgba(75, 192, 192, 1)',
+        label: 'Вологість ґрунту (%)',
+        backgroundColor: 'rgba(120, 220, 119, 0.1)',
+        borderColor: '#4c9b4b',
         data: sortedData.map((item) => parseFloat(item.statistics.soil_moisture)),
         tension: 0.4,
       },
       {
-        label: 'Light Level',
-        backgroundColor: 'rgba(255, 206, 86, 0.2)',
-        borderColor: 'rgba(255, 206, 86, 1)',
+        label: 'Рівень освітлення',
+        backgroundColor: 'rgba(120, 220, 119, 0.1)',
+        borderColor: '#3d7f3c',
         data: sortedData.map((item) => parseFloat(item.statistics.light_level)),
         tension: 0.4,
       },
@@ -90,13 +90,28 @@ const chartOptions = {
   scales: {
     y: {
       beginAtZero: false,
+      grid: {
+        color: 'rgba(255, 255, 255, 0.1)',
+      },
       ticks: {
+        color: '#fff',
         callback: (value) => `${value}`,
+      },
+    },
+    x: {
+      grid: {
+        color: 'rgba(255, 255, 255, 0.1)',
+      },
+      ticks: {
+        color: '#fff',
       },
     },
   },
   plugins: {
     tooltip: {
+      backgroundColor: 'rgb(var(--mdui-color-surface-container))',
+      titleColor: '#fff',
+      bodyColor: '#fff',
       callbacks: {
         label: function (context) {
           let label = context.dataset.label || ''
@@ -110,6 +125,9 @@ const chartOptions = {
     },
     legend: {
       position: 'top',
+      labels: {
+        color: '#fff',
+      },
     },
   },
 }
@@ -120,5 +138,6 @@ const chartOptions = {
   position: relative;
   height: 400px;
   width: 100%;
+  padding: 20px;
 }
 </style>
