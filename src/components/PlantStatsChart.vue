@@ -33,7 +33,7 @@ const props = defineProps({
 // Format date for display
 const formatDate = (dateString) => {
   const date = new Date(dateString)
-  return `${date.getMonth() + 1}/${date.getDate()}`
+  return `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}`
 }
 
 // Prepare chart data
@@ -53,29 +53,29 @@ const chartData = computed(() => {
     datasets: [
       {
         label: 'Температура (°C)',
-        backgroundColor: 'rgba(120, 220, 119, 0.1)',
-        borderColor: '#78dc77',
+        backgroundColor: 'rgba(185, 28, 28, 0.1)',
+        borderColor: '#b91c1c',
         data: sortedData.map((item) => parseFloat(item.statistics.temperature)),
         tension: 0.4,
       },
       {
         label: 'Вологість повітря (%)',
-        backgroundColor: 'rgba(120, 220, 119, 0.1)',
-        borderColor: '#5fb75e',
+        backgroundColor: 'rgba(30, 64, 175, 0.1)',
+        borderColor: '#1e40af',
         data: sortedData.map((item) => parseFloat(item.statistics.humidity)),
         tension: 0.4,
       },
       {
         label: 'Вологість ґрунту (%)',
-        backgroundColor: 'rgba(120, 220, 119, 0.1)',
-        borderColor: '#4c9b4b',
+        backgroundColor: 'rgba(21, 128, 61, 0.1)',
+        borderColor: '#15803d',
         data: sortedData.map((item) => parseFloat(item.statistics.soil_moisture)),
         tension: 0.4,
       },
       {
         label: 'Рівень освітлення',
-        backgroundColor: 'rgba(120, 220, 119, 0.1)',
-        borderColor: '#3d7f3c',
+        backgroundColor: 'rgba(180, 83, 9, 0.1)',
+        borderColor: '#b45309',
         data: sortedData.map((item) => parseFloat(item.statistics.light_level)),
         tension: 0.4,
       },
@@ -112,7 +112,21 @@ const chartOptions = {
       backgroundColor: 'rgb(var(--mdui-color-surface-container))',
       titleColor: '#fff',
       bodyColor: '#fff',
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+      borderWidth: 1,
       callbacks: {
+        labelColor: function (context) {
+          const colors = {
+            'Температура (°C)': '#b91c1c',
+            'Вологість повітря (%)': '#1e40af',
+            'Вологість ґрунту (%)': '#15803d',
+            'Рівень освітлення': '#b45309',
+          }
+          return {
+            borderColor: colors[context.dataset.label],
+            backgroundColor: colors[context.dataset.label],
+          }
+        },
         label: function (context) {
           let label = context.dataset.label || ''
           if (label) {
@@ -127,6 +141,8 @@ const chartOptions = {
       position: 'top',
       labels: {
         color: '#fff',
+        usePointStyle: true,
+        pointStyle: 'circle',
       },
     },
   },
