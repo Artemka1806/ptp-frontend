@@ -17,6 +17,14 @@
       <mdui-icon-add-box slot="active-icon"></mdui-icon-add-box>
     </mdui-navigation-bar-item>
     <mdui-navigation-bar-item
+      value="/history"
+      @click="$router.push({ name: 'history' })"
+      data-tab-name="history"
+      >Історія
+      <mdui-icon-history slot="icon"></mdui-icon-history>
+      <mdui-icon-history slot="active-icon"></mdui-icon-history>
+    </mdui-navigation-bar-item>
+    <mdui-navigation-bar-item
       value="/profile"
       @click="$router.push({ name: 'profile' })"
       data-tab-name="profile"
@@ -35,4 +43,5 @@ import '@mdui/icons/person--outlined.js'
 import '@mdui/icons/person.js'
 import '@mdui/icons/add-box--outlined.js'
 import '@mdui/icons/add-box.js'
+import '@mdui/icons/history.js'
 </script>
