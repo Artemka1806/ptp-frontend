@@ -107,6 +107,10 @@ export const getPlantByCode = (code) => {
   return $api.get(`/v1/plant/${code}`);
 };
 
+export const getPlanHistoryByCode = (code) => {
+  return $api.get(`/v1/plant/${code}/history`);
+};
+
 export const updatePlantByCode = (code, plantStats) => {
   return $api.put(`/v1/plant/${code}`, plantStats);
 };
