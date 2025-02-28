@@ -26,8 +26,7 @@ const onDetect = async (detectedCodes) => {
         title: 'Назва рослини',
         description: `Введіть назву Вашої рослини`,
         onConfirm: async (value) => {
-          await createPlant({ name: value, code: result.value })
-          router.push({ name: 'plants' })
+          enterPlantType(value)
         },
         onCancel: () => {
           paused.value = false
@@ -36,6 +35,24 @@ const onDetect = async (detectedCodes) => {
     } catch (error) {
       console.error(error)
     }
+  }
+}
+
+const enterPlantType = async (name) => {
+  try {
+    prompt({
+      title: 'Вид рослини',
+      description: `Введіть вид Вашої рослини (ромашка)`,
+      onConfirm: async (type) => {
+        await createPlant({ name: name, type: type, qrCode: result.value })
+        router.push({ name: 'plants' })
+      },
+      onCancel: () => {
+        paused.value = false
+      },
+    })
+  } catch (error) {
+    console.error(error)
   }
 }
 
