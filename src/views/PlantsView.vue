@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import 'mdui/components/card.js'
 import 'mdui/components/fab.js'
-import { exchange, deletePlantByCode } from '../http'
+import { exchange, deletePlantByCode, getPlantAdviceByCode } from '../http'
 import '@mdui/icons/add.js'
+import Typed from 'typed.js'
 import router from '@/router'
 
 const plants = ref([])
@@ -15,8 +16,11 @@ const statistics = ref({
   soil_moisture: 0,
   light_level: 0,
 })
+const advice = ref('')
+const adviceLoaded = ref(false)
 
 let wsConnection = null
+let typedInstance = null
 
 const updateTokenAndReconnect = async () => {
   try {
@@ -41,7 +45,7 @@ const fetchPlants = () => {
   wsConnection = new WebSocket(import.meta.env.VITE_WS_API_URL + `/v1/user/plants?token=${token}`)
 
   wsConnection.onopen = () => {
-    console.log('WebSocket-з’єднання встановлено')
+    console.log("WebSocket-з'єднання встановлено")
   }
 
   wsConnection.onmessage = (event) => {
@@ -56,6 +60,15 @@ const fetchPlants = () => {
         statistics.value.humidity = Number(stat.humidity)
         statistics.value.soil_moisture = Number(stat.soil_moisture)
         statistics.value.light_level = Number(stat.light_level)
+
+        getPlantAdviceByCode(statistics.value.code)
+          .then((response) => {
+            advice.value = response.data.advice
+            adviceLoaded.value = true
+          })
+          .catch((error) => {
+            console.error('Error fetching advice:', error)
+          })
       }
     } catch (error) {
       console.error('Помилка обробки даних з WebSocket:', error)
@@ -68,7 +81,7 @@ const fetchPlants = () => {
   }
 
   wsConnection.onclose = (event) => {
-    console.log('WebSocket-з’єднання закрито:', event)
+    console.log("WebSocket-з'єднання закрито:", event)
   }
 }
 
@@ -95,6 +108,25 @@ const deletePlant = (code) => {
     })
 }
 
+watch(adviceLoaded, (newAdviceLoaded) => {
+  if (newAdviceLoaded && advice.value) {
+    if (typedInstance) {
+      typedInstance.destroy()
+    }
+
+    setTimeout(() => {
+      const options = {
+        strings: [advice.value],
+        typeSpeed: 10,
+        showCursor: false,
+        loop: false,
+      }
+
+      typedInstance = new Typed('.advice-text', options)
+    }, 0)
+  }
+})
+
 onMounted(() => {
   fetchPlants()
 })
@@ -102,6 +134,10 @@ onMounted(() => {
 onUnmounted(() => {
   if (wsConnection) {
     wsConnection.close()
+  }
+
+  if (typedInstance) {
+    typedInstance.destroy()
   }
 })
 </script>
@@ -162,6 +198,21 @@ onUnmounted(() => {
             </transition>
           </div>
           <div class="stat-label">Рівень світла</div>
+        </div>
+      </mdui-card>
+    </div>
+
+    <!-- Modified AI Advice Block -->
+    <div class="advice-container" v-if="adviceLoaded">
+      <!-- Add v-if here -->
+      <mdui-card class="advice-card" outline>
+        <div class="card-content advice-content">
+          <div class="advice-header">
+            <div class="advice-icon">🤖</div>
+            <div class="advice-title">Порада від ШІ</div>
+          </div>
+          <div class="advice-text"></div>
+          <!-- Display the advice -->
         </div>
       </mdui-card>
     </div>
@@ -300,6 +351,55 @@ onUnmounted(() => {
 .stat-label {
   font-size: 14px;
   opacity: 0.85;
+}
+
+.advice-container {
+  padding: 0 20px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.advice-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+  background-color: #f3e8ff;
+  color: #6b21a8;
+  min-width: 460px;
+  border: 1px solid rgba(107, 33, 168, 0.15);
+}
+
+.advice-card:hover {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.advice-content {
+  align-items: flex-start;
+  padding: 16px 20px;
+}
+
+.advice-header {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-bottom: 14px;
+}
+
+.advice-icon {
+  font-size: 18px;
+  margin-right: 8px;
+}
+
+.advice-title {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.advice-text {
+  width: 100%;
+  font-size: 16px;
+  opacity: 0.9;
+  padding-top: 4px;
 }
 
 .fade-enter-active,
