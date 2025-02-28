@@ -365,7 +365,7 @@ onUnmounted(() => {
   transition: box-shadow 0.2s ease;
   background-color: #f3e8ff;
   color: #6b21a8;
-  min-width: 460px;
+  min-width: 50%;
   border: 1px solid rgba(107, 33, 168, 0.15);
 }
 
