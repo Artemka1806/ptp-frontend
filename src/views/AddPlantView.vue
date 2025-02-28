@@ -44,7 +44,7 @@ const enterPlantType = async (name) => {
       title: 'Вид рослини',
       description: `Введіть вид Вашої рослини`,
       onConfirm: async (type) => {
-        await createPlant({ name: name, type: type, сode: result.value })
+        await createPlant({ name: name, type: type, code: result.value })
         router.push({ name: 'plants' })
       },
       onCancel: () => {
