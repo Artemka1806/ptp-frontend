@@ -100,6 +100,10 @@ onMounted(async () => {
   background-color: rgb(var(--mdui-color-surface-container));
 }
 
+.chart-container {
+  margin-left: 0px;
+}
+
 h2 {
   color: #fff;
   margin-bottom: 20px;
