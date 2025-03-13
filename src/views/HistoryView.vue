@@ -96,6 +96,7 @@ onMounted(async () => {
 .data-section {
   margin-bottom: 30px;
   padding: 20px;
+  padding-top: 5px;
   border-radius: 12px;
   background-color: rgb(var(--mdui-color-surface-container));
 }
