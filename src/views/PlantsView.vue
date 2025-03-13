@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import 'mdui/components/card.js'
 import 'mdui/components/fab.js'
+import { alert } from 'mdui/functions/alert.js'
 import { exchange, deletePlantByCode, getPlantAdviceByCode } from '../http'
 import '@mdui/icons/add.js'
 import Typed from 'typed.js'
@@ -18,6 +19,27 @@ const statistics = ref({
 })
 const advice = ref('')
 const adviceLoaded = ref(false)
+const adviceUpdatedAt = ref(null)
+
+// Add this function to show the alert with advice information
+const showInfoAlert = () => {
+  const updateDate = adviceUpdatedAt.value
+    ? new Date(adviceUpdatedAt.value).toLocaleString('uk-UA', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'Невідомо'
+
+  alert({
+    headline: 'Порада від ШІ',
+    description: `Порада від ШІ оновлюється раз на добу для користувачів безкоштовного плану. Останнє оновлення: ${updateDate}`,
+    confirmText: 'OK',
+    onConfirm: () => {},
+  })
+}
 
 let wsConnection = null
 let typedInstance = null
@@ -60,6 +82,8 @@ const fetchPlants = () => {
         statistics.value.humidity = Number(stat.humidity)
         statistics.value.soil_moisture = Number(stat.soil_moisture)
         statistics.value.light_level = Number(stat.light_level)
+
+        adviceUpdatedAt.value = data.plants[0].advice_updated_at
 
         getPlantAdviceByCode(statistics.value.code)
           .then((response) => {
@@ -210,6 +234,7 @@ onUnmounted(() => {
           <div class="advice-header">
             <div class="advice-icon">🤖</div>
             <div class="advice-title">Порада від ШІ</div>
+            <div class="info-icon" @click="showInfoAlert">ℹ️</div>
           </div>
           <div class="advice-text"></div>
           <!-- Display the advice -->
@@ -359,6 +384,27 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
+.info-icon {
+  font-size: 14px;
+  margin-left: auto;
+  cursor: pointer;
+  background-color: rgba(107, 33, 168, 0.1);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+  position: relative;
+  top: -2px;
+  padding-bottom: 0.7px;
+}
+
+.info-icon:hover {
+  background-color: rgba(107, 33, 168, 0.2);
+}
+
 .advice-card {
   border-radius: 12px;
   overflow: hidden;
@@ -383,6 +429,7 @@ onUnmounted(() => {
   align-items: center;
   align-self: flex-start;
   margin-bottom: 14px;
+  width: 100%;
 }
 
 .advice-icon {
