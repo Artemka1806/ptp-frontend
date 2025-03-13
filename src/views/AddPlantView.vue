@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1>Выдскануйте QR-код приставки</h1>
+    <h1>Відскануйте QR-код приставки</h1>
     <qrcode-stream
       @detect="onDetect"
       :track="paintBoundingBox"
