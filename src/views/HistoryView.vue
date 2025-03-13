@@ -95,6 +95,7 @@ onMounted(async () => {
 .chart-section,
 .data-section {
   margin-bottom: 30px;
+  padding: 5px 20px;
   border-radius: 12px;
   background-color: rgb(var(--mdui-color-surface-container));
 }
