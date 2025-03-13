@@ -101,7 +101,7 @@ onMounted(async () => {
 }
 
 .chart-container {
-  margin-left: 0px;
+  padding-left: 0px;
 }
 
 h2 {
