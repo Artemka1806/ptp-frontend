@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1>Відскануйте QR-код приставки</h1>
+    <h2>Відскануйте QR-код приставки</h2>
     <qrcode-stream
       @detect="onDetect"
       :track="paintBoundingBox"
@@ -73,5 +73,8 @@ const paintBoundingBox = (detectedCodes, ctx) => {
 <style scoped>
 .container {
   margin-top: 10%;
+}
+h2 {
+  margin-left: 10px;
 }
 </style>

@@ -101,7 +101,7 @@ onMounted(async () => {
 }
 
 h2 {
-  color: #78dc77;
+  color: #fff;
   margin-bottom: 20px;
   font-size: 1.5rem;
 }
