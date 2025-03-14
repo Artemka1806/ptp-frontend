@@ -4,7 +4,8 @@
     <div v-else>
       <div class="chart-section">
         <h2>Статистика за весь час</h2>
-        <PlantStatsChart :historyData="planHistoryArray" />
+        <PlantStatsChart v-if="planHistoryArray" :historyData="planHistoryArray" />
+        <span v-else>Дані історії відсутні</span>
       </div>
 
       <div class="data-section">
