@@ -4,8 +4,8 @@
     <div v-else>
       <div class="chart-section">
         <h2>Статистика за весь час</h2>
-        <PlantStatsChart v-if="planHistoryArray" :historyData="planHistoryArray" />
-        <span v-else>Дані історії відсутні</span>
+        <PlantStatsChart v-if="planHistoryArray.length > 0" :historyData="planHistoryArray" />
+        <p v-else class="no-data">Дані історії відсутні</p>
       </div>
 
       <div class="data-section">
@@ -70,6 +70,7 @@ onMounted(async () => {
         planHistoryArray.value = Array.isArray(historyResponse.data)
           ? historyResponse.data
           : [historyResponse.data]
+        console.log(planHistoryArray.value)
       }
     }
   } catch (error) {
