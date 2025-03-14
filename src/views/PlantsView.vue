@@ -447,6 +447,7 @@ onUnmounted(() => {
   font-size: 16px;
   opacity: 0.9;
   padding-top: 4px;
+  white-space: pre-line;
 }
 
 .fade-enter-active,
