@@ -138,7 +138,7 @@ watch(weeklyAdviceLoaded, (newAdviceLoaded) => {
     setTimeout(() => {
       const options = {
         strings: [weeklyAdvice.value],
-        typeSpeed: 10,
+        typeSpeed: -100,
         showCursor: false,
         loop: false,
       }
