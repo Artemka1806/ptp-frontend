@@ -3,7 +3,7 @@
     <div v-if="loading" class="loading">Завантаження...</div>
     <div v-else>
       <div class="chart-section">
-        <h2>Статистика за весь час</h2>
+        <h2>Статистика за останні 7 днів</h2>
         <PlantStatsChart v-if="planHistoryArray.length > 0" :historyData="planHistoryArray" />
         <p v-else class="no-data">Дані історії відсутні</p>
       </div>
