@@ -42,7 +42,7 @@
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { getPlanHistoryByCode, getUserPlants } from '@/http'
-import PlantStatsChart from '@/components/PlantStatsChart.vue' // Import the chart component
+import PlantStatsChart from '@/components/PlantStatsChart.vue'
 
 const userStore = useUserStore()
 const planHistory = ref({})
