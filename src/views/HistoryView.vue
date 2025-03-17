@@ -8,6 +8,21 @@
         <p v-else class="no-data">Дані історії відсутні</p>
       </div>
 
+      <mdui-card
+        v-if="weeklyAdviceLoaded && planHistoryArray.length > 0"
+        class="advice-card"
+        outline
+      >
+        <div class="card-content advice-content">
+          <div class="advice-header">
+            <div class="advice-icon">🤖</div>
+            <div class="advice-title">Аналіз даних за тиждень</div>
+            <div class="info-icon" @click="showInfoAlert">ℹ️</div>
+          </div>
+          <div class="weekly-advice-text"></div>
+        </div>
+      </mdui-card>
+
       <div class="data-section">
         <h2>Необроблені дані</h2>
         <div class="table-container">
@@ -39,20 +54,46 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { getPlanHistoryByCode, getUserPlants } from '@/http'
+import { getPlanHistoryByCode, getUserPlants, getPlantWeeklyAdviceByCode } from '@/http'
 import PlantStatsChart from '@/components/PlantStatsChart.vue'
+import 'mdui/components/card.js'
+import { alert } from 'mdui/functions/alert.js'
+import Typed from 'typed.js'
 
 const userStore = useUserStore()
 const planHistory = ref({})
 const planHistoryArray = ref([])
 const plant = ref({})
 const loading = ref(true)
+const weeklyAdvice = ref('')
+const weeklyAdviceLoaded = ref(false)
+const weeklyAdviceUpdatedAt = ref(null)
+let typedInstance = null
 
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return date.toLocaleDateString()
+}
+
+const showInfoAlert = () => {
+  const updateDate = weeklyAdviceUpdatedAt.value
+    ? new Date(weeklyAdviceUpdatedAt.value).toLocaleString('uk-UA', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'Невідомо'
+
+  alert({
+    headline: 'Аналіз даних за тиждень',
+    description: `Аналіз від ШІ базується на даних за останні 7 днів. Останнє оновлення: ${updateDate}`,
+    confirmText: 'OK',
+    onConfirm: () => {},
+  })
 }
 
 onMounted(async () => {
@@ -66,17 +107,50 @@ onMounted(async () => {
         const historyResponse = await getPlanHistoryByCode(plant.value.code)
         planHistory.value = historyResponse.data
 
-        // Convert to array if it's not already
         planHistoryArray.value = Array.isArray(historyResponse.data)
           ? historyResponse.data
           : [historyResponse.data]
         console.log(planHistoryArray.value)
+
+        try {
+          const weeklyAdviceResponse = await getPlantWeeklyAdviceByCode(plant.value.code)
+          weeklyAdvice.value = weeklyAdviceResponse.data.advice
+          weeklyAdviceUpdatedAt.value = weeklyAdviceResponse.data.updated_at || new Date()
+          weeklyAdviceLoaded.value = true
+        } catch (adviceError) {
+          console.error('Error fetching weekly advice:', adviceError)
+        }
       }
     }
   } catch (error) {
     console.error('Error fetching data:', error)
   } finally {
     loading.value = false
+  }
+})
+
+watch(weeklyAdviceLoaded, (newAdviceLoaded) => {
+  if (newAdviceLoaded && weeklyAdvice.value) {
+    if (typedInstance) {
+      typedInstance.destroy()
+    }
+
+    setTimeout(() => {
+      const options = {
+        strings: [weeklyAdvice.value],
+        typeSpeed: 10,
+        showCursor: false,
+        loop: false,
+      }
+
+      typedInstance = new Typed('.weekly-advice-text', options)
+    }, 0)
+  }
+})
+
+onUnmounted(() => {
+  if (typedInstance) {
+    typedInstance.destroy()
   }
 })
 </script>
@@ -150,5 +224,71 @@ h2 {
   text-align: center;
   color: rgba(255, 255, 255, 0.6);
   padding: 2rem;
+}
+
+.advice-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+  background-color: #f3e8ff;
+  color: #6b21a8;
+  border: 1px solid rgba(107, 33, 168, 0.15);
+  margin-bottom: 30px;
+}
+
+.advice-card:hover {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.advice-content {
+  align-items: flex-start;
+  padding: 16px 20px;
+}
+
+.advice-header {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-bottom: 14px;
+  width: 100%;
+}
+
+.advice-icon {
+  font-size: 18px;
+  margin-right: 8px;
+}
+
+.advice-title {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.info-icon {
+  font-size: 14px;
+  margin-left: auto;
+  cursor: pointer;
+  background-color: rgba(107, 33, 168, 0.1);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+  position: relative;
+  top: -2px;
+  padding-bottom: 0.7px;
+}
+
+.info-icon:hover {
+  background-color: rgba(107, 33, 168, 0.2);
+}
+
+.weekly-advice-text {
+  width: 100%;
+  font-size: 16px;
+  opacity: 0.9;
+  padding-top: 4px;
+  white-space: pre-line;
 }
 </style>

@@ -115,6 +115,10 @@ export const getPlantAdviceByCode = (code) => {
   return $api.get(`/v1/plant/${code}/advice`);
 };
 
+export const getPlantWeeklyAdviceByCode = (code) => {
+  return $api.get(`/v1/plant/${code}/weekly-advice`);
+};
+
 export const updatePlantByCode = (code, plantStats) => {
   return $api.put(`/v1/plant/${code}`, plantStats);
 };
