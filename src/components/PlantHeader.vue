@@ -13,7 +13,7 @@
     </div>
 
     <div class="plant-header">
-      <div class="plant-icon"><span>🌱</span></div>
+      <!-- <div class="plant-icon"><span>🌱</span></div> -->
       <div class="plant-name">{{ name }}</div>
       <div v-if="showDelete" class="plant-icon delete-icon" @click="$emit('delete')">
         <span>🗑️</span>
