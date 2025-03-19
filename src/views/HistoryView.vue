@@ -29,20 +29,29 @@
         <p v-else class="no-data">Дані історії відсутні</p>
       </div>
 
-      <mdui-card
-        v-if="weeklyAdviceLoaded && planHistoryArray.length > 0"
-        class="advice-card"
-        outline
-      >
-        <div class="card-content advice-content">
-          <div class="advice-header">
-            <div class="advice-icon">🤖</div>
-            <div class="advice-title">Аналіз даних за тиждень</div>
-            <div class="info-icon" @click="showInfoAlert">ℹ️</div>
+      <!-- Modified advice card section with loading state -->
+      <div v-if="planHistoryArray.length > 0" class="advice-container">
+        <mdui-card v-if="adviceLoading" class="advice-card" outline>
+          <div class="card-content advice-content">
+            <div class="advice-header">
+              <div class="advice-icon">🤖</div>
+              <div class="advice-title">Аналіз даних за тиждень</div>
+            </div>
+            <div class="advice-loading">Завантаження поради...</div>
           </div>
-          <div class="weekly-advice-text"></div>
-        </div>
-      </mdui-card>
+        </mdui-card>
+
+        <mdui-card v-else-if="weeklyAdviceLoaded" class="advice-card" outline>
+          <div class="card-content advice-content">
+            <div class="advice-header">
+              <div class="advice-icon">🤖</div>
+              <div class="advice-title">Аналіз даних за тиждень</div>
+              <div class="info-icon" @click="showInfoAlert">ℹ️</div>
+            </div>
+            <div class="weekly-advice-text"></div>
+          </div>
+        </mdui-card>
+      </div>
 
       <div class="data-section">
         <h2>Необроблені дані</h2>
@@ -92,6 +101,7 @@ const planHistoryArray = ref([])
 const plants = ref([])
 const currentPlantIndex = ref(0)
 const loading = ref(true)
+const adviceLoading = ref(false)
 const weeklyAdvice = ref('')
 const weeklyAdviceLoaded = ref(false)
 const weeklyAdviceUpdatedAt = ref(null)
@@ -164,6 +174,25 @@ const showInfoAlert = () => {
   })
 }
 
+// Function to load weekly advice separately
+const loadPlantAdvice = async (plantId) => {
+  if (!plantId) return
+
+  adviceLoading.value = true
+  weeklyAdviceLoaded.value = false
+
+  try {
+    const weeklyAdviceResponse = await getPlantWeeklyAdviceById(plantId)
+    weeklyAdvice.value = weeklyAdviceResponse.data.advice
+    weeklyAdviceUpdatedAt.value = weeklyAdviceResponse.data.updated_at || new Date()
+    weeklyAdviceLoaded.value = true
+  } catch (adviceError) {
+    console.error('Error fetching weekly advice:', adviceError)
+  } finally {
+    adviceLoading.value = false
+  }
+}
+
 // Function to load data for current plant
 const loadPlantData = async () => {
   try {
@@ -181,7 +210,7 @@ const loadPlantData = async () => {
     userStore.setPlant(currentPlant)
 
     // Fetch history data for the current plant
-    if (currentPlant.code) {
+    if (currentPlant.id) {
       const historyResponse = await getPlanHistoryById(currentPlant.id)
       planHistory.value = historyResponse.data
 
@@ -189,19 +218,16 @@ const loadPlantData = async () => {
         ? historyResponse.data
         : [historyResponse.data]
 
-      // Fetch weekly advice for the current plant
-      try {
-        const weeklyAdviceResponse = await getPlantWeeklyAdviceById(currentPlant.id)
-        weeklyAdvice.value = weeklyAdviceResponse.data.advice
-        weeklyAdviceUpdatedAt.value = weeklyAdviceResponse.data.updated_at || new Date()
-        weeklyAdviceLoaded.value = true
-      } catch (adviceError) {
-        console.error('Error fetching weekly advice:', adviceError)
-      }
+      // Now that basic data is loaded, set loading to false
+      loading.value = false
+
+      // Then load the advice separately
+      loadPlantAdvice(currentPlant.id)
+    } else {
+      loading.value = false
     }
   } catch (error) {
     console.error('Error loading plant data:', error)
-  } finally {
     loading.value = false
   }
 }
@@ -233,13 +259,13 @@ watch(weeklyAdviceLoaded, (newAdviceLoaded) => {
     setTimeout(() => {
       const options = {
         strings: [weeklyAdvice.value],
-        typeSpeed: -100,
+        typeSpeed: 10, // Slowed down for better readability
         showCursor: false,
         loop: false,
       }
 
       typedInstance = new Typed('.weekly-advice-text', options)
-    }, 0)
+    }, 100)
   }
 })
 
@@ -321,6 +347,17 @@ onUnmounted(() => {
   text-align: center;
   padding: 2rem;
   color: rgba(255, 255, 255, 0.7);
+}
+
+.advice-loading {
+  width: 100%;
+  text-align: center;
+  padding: 1rem 0;
+  color: rgba(107, 33, 168, 0.7);
+}
+
+.advice-container {
+  margin-bottom: 30px;
 }
 
 .chart-section,
