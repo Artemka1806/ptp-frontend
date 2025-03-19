@@ -1,7 +1,28 @@
 <template>
-  <div class="history-container">
+  <div class="history-container" @touchstart="handleTouchStart" @touchend="handleTouchEnd">
     <div v-if="loading" class="loading">Завантаження...</div>
     <div v-else>
+      <div class="header-container" v-if="plants.length > 0">
+        <div class="plant-navigation">
+          <mdui-button class="arrow-button" v-if="showNavigation" @click="prevPlant">
+            <mdui-icon-chevron-left></mdui-icon-chevron-left>
+          </mdui-button>
+
+          <div class="plant-counter" v-if="showNavigation">
+            {{ currentPlantIndex + 1 }}/{{ plants.length }}
+          </div>
+
+          <mdui-button class="arrow-button" v-if="showNavigation" @click="nextPlant">
+            <mdui-icon-chevron-right></mdui-icon-chevron-right>
+          </mdui-button>
+        </div>
+
+        <div class="plant-header">
+          <div class="plant-icon"><span>🌱</span></div>
+          <div class="plant-name">{{ plants[currentPlantIndex]?.name || '' }}</div>
+        </div>
+      </div>
+
       <div class="chart-section">
         <h2>Статистика за останні 7 днів</h2>
         <PlantStatsChart v-if="planHistoryArray.length > 0" :historyData="planHistoryArray" />
@@ -54,23 +75,70 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { getPlanHistoryByCode, getUserPlants, getPlantWeeklyAdviceById } from '@/http'
+import { getPlanHistoryById, getUserPlants, getPlantWeeklyAdviceById } from '@/http'
 import PlantStatsChart from '@/components/PlantStatsChart.vue'
 import 'mdui/components/card.js'
+import 'mdui/components/button.js'
+import '@mdui/icons/chevron-left.js'
+import '@mdui/icons/chevron-right.js'
 import { alert } from 'mdui/functions/alert.js'
 import Typed from 'typed.js'
 
 const userStore = useUserStore()
 const planHistory = ref({})
 const planHistoryArray = ref([])
-const plant = ref({})
+const plants = ref([])
+const currentPlantIndex = ref(0)
 const loading = ref(true)
 const weeklyAdvice = ref('')
 const weeklyAdviceLoaded = ref(false)
 const weeklyAdviceUpdatedAt = ref(null)
 let typedInstance = null
+const touchStartX = ref(0)
+const touchEndX = ref(0)
+
+// Computed property to determine if navigation arrows should be shown
+const showNavigation = computed(() => plants.value.length > 1)
+
+// Function to navigate to previous plant
+const prevPlant = () => {
+  if (plants.value.length <= 1) return
+
+  currentPlantIndex.value =
+    (currentPlantIndex.value - 1 + plants.value.length) % plants.value.length
+
+  loadPlantData()
+}
+
+// Function to navigate to next plant
+const nextPlant = () => {
+  if (plants.value.length <= 1) return
+
+  currentPlantIndex.value = (currentPlantIndex.value + 1) % plants.value.length
+
+  loadPlantData()
+}
+
+// Touch event handlers for swipe functionality
+const handleTouchStart = (event) => {
+  touchStartX.value = event.changedTouches[0].screenX
+}
+
+const handleTouchEnd = (event) => {
+  touchEndX.value = event.changedTouches[0].screenX
+  handleGesture()
+}
+
+const handleGesture = () => {
+  const threshold = 50 // Minimum distance to be considered a swipe
+  if (touchEndX.value < touchStartX.value - threshold) {
+    nextPlant() // Swipe left means go to next plant
+  } else if (touchEndX.value > touchStartX.value + threshold) {
+    prevPlant() // Swipe right means go to previous plant
+  }
+}
 
 const formatDate = (dateString) => {
   const date = new Date(dateString)
@@ -96,35 +164,62 @@ const showInfoAlert = () => {
   })
 }
 
-onMounted(async () => {
+// Function to load data for current plant
+const loadPlantData = async () => {
   try {
-    const response = await getUserPlants()
-    if (response.data.plants.length > 0) {
-      plant.value = response.data.plants[0]
-      userStore.setPlant(plant.value)
+    const currentPlant = plants.value[currentPlantIndex.value]
+    if (!currentPlant) return
 
-      if (plant.value.code) {
-        const historyResponse = await getPlanHistoryByCode(plant.value.code)
-        planHistory.value = historyResponse.data
+    loading.value = true
+    weeklyAdviceLoaded.value = false
 
-        planHistoryArray.value = Array.isArray(historyResponse.data)
-          ? historyResponse.data
-          : [historyResponse.data]
-        console.log(planHistoryArray.value)
+    // Reset data
+    planHistory.value = {}
+    planHistoryArray.value = []
 
-        try {
-          const weeklyAdviceResponse = await getPlantWeeklyAdviceById(plant.value.id)
-          weeklyAdvice.value = weeklyAdviceResponse.data.advice
-          weeklyAdviceUpdatedAt.value = weeklyAdviceResponse.data.updated_at || new Date()
-          weeklyAdviceLoaded.value = true
-        } catch (adviceError) {
-          console.error('Error fetching weekly advice:', adviceError)
-        }
+    // Update store with current plant
+    userStore.setPlant(currentPlant)
+
+    // Fetch history data for the current plant
+    if (currentPlant.code) {
+      const historyResponse = await getPlanHistoryById(currentPlant.id)
+      planHistory.value = historyResponse.data
+
+      planHistoryArray.value = Array.isArray(historyResponse.data)
+        ? historyResponse.data
+        : [historyResponse.data]
+
+      // Fetch weekly advice for the current plant
+      try {
+        const weeklyAdviceResponse = await getPlantWeeklyAdviceById(currentPlant.id)
+        weeklyAdvice.value = weeklyAdviceResponse.data.advice
+        weeklyAdviceUpdatedAt.value = weeklyAdviceResponse.data.updated_at || new Date()
+        weeklyAdviceLoaded.value = true
+      } catch (adviceError) {
+        console.error('Error fetching weekly advice:', adviceError)
       }
     }
   } catch (error) {
-    console.error('Error fetching data:', error)
+    console.error('Error loading plant data:', error)
   } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  try {
+    // Fetch all user plants
+    const response = await getUserPlants()
+    plants.value = response.data.plants || []
+
+    // If we have plants, load data for the first one
+    if (plants.value.length > 0) {
+      loadPlantData()
+    } else {
+      loading.value = false
+    }
+  } catch (error) {
+    console.error('Error fetching plants:', error)
     loading.value = false
   }
 })
@@ -156,6 +251,66 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.header-container {
+  padding: 10px 20px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.plant-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 15px;
+}
+
+.arrow-button {
+  width: 80px;
+  height: 35px;
+}
+
+.plant-counter {
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  text-align: center;
+  flex-grow: 1;
+}
+
+.plant-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 800px;
+  margin-top: 5px;
+}
+
+.plant-icon {
+  width: 46px;
+  height: 46px;
+  background-color: rgb(var(--mdui-color-surface-container-high-dark));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  margin-left: 10px;
+  font-size: 24px;
+}
+
+.plant-name {
+  font-size: 36px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
 .history-container {
   max-width: 1200px;
   margin: 0 auto;

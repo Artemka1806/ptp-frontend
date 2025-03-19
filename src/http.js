@@ -107,8 +107,8 @@ export const getPlantByCode = (code) => {
   return $api.get(`/v1/plant/${code}`);
 };
 
-export const getPlanHistoryByCode = (code) => {
-  return $api.get(`/v1/plant/${code}/history?limit=7`);
+export const getPlanHistoryById = (id) => {
+  return $api.get(`/v1/plant/${id}/history?limit=7`);
 };
 
 export const getPlantAdviceById = (id) => {
