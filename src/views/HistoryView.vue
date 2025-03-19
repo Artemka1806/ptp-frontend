@@ -411,7 +411,6 @@ h2 {
   min-height: 200px; /* Adjust based on your needs */
 }
 
-/* Make sure PlantHeader stays fixed at the top */
 .plant-header {
   position: sticky;
   top: 0;

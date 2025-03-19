@@ -78,8 +78,8 @@ onUnmounted(() => {
 
 <style scoped>
 .advice-container {
-  padding: 0 20px 20px;
-  max-width: 800px;
+  padding: 0;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
