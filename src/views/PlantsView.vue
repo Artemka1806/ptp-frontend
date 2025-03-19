@@ -310,28 +310,25 @@ onUnmounted(() => {
   >
     <div class="header-container">
       <div class="plant-navigation">
-        <mdui-button v-if="showNavigation" @click="prevPlant">
+        <mdui-button class="arrow-button" v-if="showNavigation" @click="prevPlant">
           <mdui-icon-chevron-left></mdui-icon-chevron-left>
         </mdui-button>
 
-        <div class="plant-header">
-          <div class="plant-icon">
-            <span>🌱</span>
-          </div>
-          <div class="plant-name">{{ statistics.name }}</div>
-          <div class="plant-icon delete-icon" @click="confirmDelete(plants[currentPlantIndex].id)">
-            <span>🗑️</span>
-          </div>
+        <div class="plant-counter" v-if="showNavigation">
+          {{ currentPlantIndex + 1 }}/{{ plants.length }}
         </div>
 
-        <mdui-button v-if="showNavigation" @click="nextPlant">
+        <mdui-button class="arrow-button" v-if="showNavigation" @click="nextPlant">
           <mdui-icon-chevron-right></mdui-icon-chevron-right>
         </mdui-button>
       </div>
 
-      <!-- Plant counter indicator -->
-      <div class="plant-counter" v-if="showNavigation">
-        {{ currentPlantIndex + 1 }} / {{ plants.length }}
+      <div class="plant-header">
+        <div class="plant-icon"><span>🌱</span></div>
+        <div class="plant-name">{{ statistics.name }}</div>
+        <div class="plant-icon delete-icon" @click="confirmDelete(plants[currentPlantIndex].id)">
+          <span>🗑️</span>
+        </div>
       </div>
     </div>
 
@@ -445,19 +442,28 @@ onUnmounted(() => {
   justify-content: space-between;
   width: 100%;
   max-width: 800px;
+  margin-bottom: 15px;
+}
+
+.arrow-button {
+  width: 80px;
 }
 
 .plant-counter {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-top: 5px;
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  text-align: center;
+  flex-grow: 1;
 }
 
 .plant-header {
   display: flex;
   align-items: center;
-  flex-grow: 1;
   justify-content: center;
+  width: 100%;
+  max-width: 800px;
+  margin-top: 5px;
 }
 
 .plant-icon {
@@ -469,11 +475,13 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   margin-right: 20px;
+  margin-left: 10px;
   font-size: 24px;
 }
 
 .delete-icon {
   margin-left: auto;
+  margin-right: 10px;
   cursor: pointer;
 }
 
