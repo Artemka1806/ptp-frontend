@@ -1,14 +1,19 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import 'mdui/components/card.js'
 import 'mdui/components/fab.js'
+import 'mdui/components/button.js'
+import '@mdui/icons/chevron-left.js'
+import '@mdui/icons/chevron-right.js'
+import { confirm } from 'mdui/functions/confirm.js'
 import { alert } from 'mdui/functions/alert.js'
-import { exchange, deletePlantByCode, getPlantAdviceByCode } from '../http'
+import { exchange, deletePlantById, getPlantAdviceById } from '../http'
 import '@mdui/icons/add.js'
 import Typed from 'typed.js'
 import router from '@/router'
 
 const plants = ref([])
+const currentPlantIndex = ref(0)
 const statistics = ref({
   name: '',
   code: '',
@@ -20,6 +25,11 @@ const statistics = ref({
 const advice = ref('')
 const adviceLoaded = ref(false)
 const adviceUpdatedAt = ref(null)
+const touchStartX = ref(0)
+const touchEndX = ref(0)
+
+// Computed property to determine if navigation arrows should be shown
+const showNavigation = computed(() => plants.value.length > 1)
 
 // Add this function to show the alert with advice information
 const showInfoAlert = () => {
@@ -39,6 +49,80 @@ const showInfoAlert = () => {
     confirmText: 'OK',
     onConfirm: () => {},
   })
+}
+
+// Function to navigate to previous plant
+const prevPlant = () => {
+  if (plants.value.length <= 1) return
+
+  currentPlantIndex.value =
+    (currentPlantIndex.value - 1 + plants.value.length) % plants.value.length
+
+  updateCurrentPlantData()
+}
+
+// Function to navigate to next plant
+const nextPlant = () => {
+  if (plants.value.length <= 1) return
+
+  currentPlantIndex.value = (currentPlantIndex.value + 1) % plants.value.length
+
+  updateCurrentPlantData()
+}
+
+// Function to update displayed data based on current plant
+const updateCurrentPlantData = (fetchAdvice = true) => {
+  const plant = plants.value[currentPlantIndex.value]
+  if (!plant) return
+
+  const stat = plant.statistics || {
+    temperature: 0,
+    humidity: 0,
+    soil_moisture: 0,
+    light_level: 0,
+  }
+
+  statistics.value = {
+    name: plant.name,
+    code: plant.code,
+    temperature: Number(stat.temperature),
+    humidity: Number(stat.humidity),
+    soil_moisture: Number(stat.soil_moisture),
+    light_level: Number(stat.light_level),
+  }
+
+  adviceUpdatedAt.value = plant.advice_updated_at
+
+  if (fetchAdvice) {
+    adviceLoaded.value = false
+    getPlantAdviceById(plant.id)
+      .then((response) => {
+        advice.value = response.data.advice
+        adviceLoaded.value = true
+      })
+      .catch((error) => {
+        console.error('Error fetching advice:', error)
+      })
+  }
+}
+
+// Touch event handlers for swipe functionality
+const handleTouchStart = (event) => {
+  touchStartX.value = event.changedTouches[0].screenX
+}
+
+const handleTouchEnd = (event) => {
+  touchEndX.value = event.changedTouches[0].screenX
+  handleGesture()
+}
+
+const handleGesture = () => {
+  const threshold = 50 // Minimum distance to be considered a swipe
+  if (touchEndX.value < touchStartX.value - threshold) {
+    nextPlant() // Swipe left means go to next plant
+  } else if (touchEndX.value > touchStartX.value + threshold) {
+    prevPlant() // Swipe right means go to previous plant
+  }
 }
 
 let wsConnection = null
@@ -75,24 +159,13 @@ const fetchPlants = () => {
       const data = JSON.parse(event.data)
       if (data?.plants && data.plants.length > 0) {
         plants.value = data.plants
-        const stat = data.plants[0].statistics
-        statistics.value.name = data.plants[0].name
-        statistics.value.code = data.plants[0].code
-        statistics.value.temperature = Number(stat.temperature)
-        statistics.value.humidity = Number(stat.humidity)
-        statistics.value.soil_moisture = Number(stat.soil_moisture)
-        statistics.value.light_level = Number(stat.light_level)
 
-        adviceUpdatedAt.value = data.plants[0].advice_updated_at
+        // Make sure currentPlantIndex is valid
+        if (currentPlantIndex.value >= plants.value.length) {
+          currentPlantIndex.value = 0
+        }
 
-        getPlantAdviceByCode(statistics.value.code)
-          .then((response) => {
-            advice.value = response.data.advice
-            adviceLoaded.value = true
-          })
-          .catch((error) => {
-            console.error('Error fetching advice:', error)
-          })
+        updateCurrentPlantData(false)
       }
     } catch (error) {
       console.error('Помилка обробки даних з WebSocket:', error)
@@ -113,46 +186,108 @@ const addPlant = () => {
   router.push('/add-plant')
 }
 
-const deletePlant = (code) => {
-  deletePlantByCode(code)
+const confirmDelete = (id) => {
+  confirm({
+    headline: 'Видалити рослину?',
+    description: 'Ви впевнені, що хочете видалити цю рослину? Цю дію не можна скасувати.',
+    cancelText: 'Скасувати',
+    confirmText: 'Видалити',
+    onCancel: () => {},
+    onConfirm: () => {
+      deletePlant(id)
+    },
+  })
+}
+
+const deletePlant = (id) => {
+  deletePlantById(id)
     .then(() => {
-      plants.value = []
-      statistics.value = {
-        name: '',
-        code: '',
-        temperature: 0,
-        humidity: 0,
-        soil_moisture: 0,
-        light_level: 0,
+      // If we're deleting the current plant
+      plants.value = plants.value.filter((p) => p.id !== id)
+
+      // Reset index if necessary
+      if (plants.value.length === 0) {
+        currentPlantIndex.value = 0
+        statistics.value = {
+          name: '',
+          code: '',
+          temperature: 0,
+          humidity: 0,
+          soil_moisture: 0,
+          light_level: 0,
+        }
+        adviceLoaded.value = false
+      } else if (currentPlantIndex.value >= plants.value.length) {
+        currentPlantIndex.value = plants.value.length - 1
+        updateCurrentPlantData()
+      } else {
+        updateCurrentPlantData()
       }
-      fetchPlants()
     })
     .catch((error) => {
       console.error('Помилка видалення рослини:', error)
     })
 }
 
-watch(adviceLoaded, (newAdviceLoaded) => {
-  if (newAdviceLoaded && advice.value) {
-    if (typedInstance) {
-      typedInstance.destroy()
-    }
+let loadadedAdvice = ref('')
 
-    setTimeout(() => {
-      const options = {
-        strings: [advice.value],
-        typeSpeed: -100,
-        showCursor: false,
-        loop: false,
+watch(
+  [adviceLoaded, () => plants.value[currentPlantIndex.value]?.id],
+  ([newAdviceLoaded, plantId]) => {
+    if (newAdviceLoaded && plantId) {
+      // Completely destroy previous instance
+      if (typedInstance) {
+        typedInstance.destroy()
+        typedInstance = null
       }
 
-      typedInstance = new Typed('.advice-text', options)
-    }, 0)
-  }
-})
+      // Clear the element content
+      const adviceTextElement = document.querySelector('.advice-text')
+      if (adviceTextElement) {
+        adviceTextElement.innerHTML = ''
+      }
+
+      loadadedAdvice.value = advice.value
+
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        const options = {
+          strings: [advice.value || 'Немає поради'],
+          typeSpeed: 10, // Try a slower speed to see the effect
+          showCursor: false,
+          loop: false,
+        }
+
+        // Create new typed instance
+        typedInstance = new Typed('.advice-text', options)
+      }, 50)
+    }
+  },
+)
 
 onMounted(() => {
   fetchPlants()
+  setTimeout(() => {
+    if (plants.value.length > 0) {
+      const plant = plants.value[currentPlantIndex.value]
+      if (plant) {
+        adviceLoaded.value = false
+        getPlantAdviceById(plant.id)
+          .then((response) => {
+            console.log('Initial advice:', response.data.advice)
+            if (response.data.advice.trim() === '') {
+              advice.value = 'Немає поради'
+            } else {
+              advice.value = response.data.advice
+            }
+            adviceLoaded.value = true
+          })
+          .catch((error) => {
+            console.error('Error fetching initial advice:', error)
+          })
+      }
+    }
+  }, 1000)
 })
 
 onUnmounted(() => {
@@ -167,16 +302,36 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="plant-container" v-if="plants.length > 0">
+  <div
+    class="plant-container"
+    v-if="plants.length > 0"
+    @touchstart="handleTouchStart"
+    @touchend="handleTouchEnd"
+  >
     <div class="header-container">
-      <div class="plant-header">
-        <div class="plant-icon">
-          <span>🌱</span>
+      <div class="plant-navigation">
+        <mdui-button v-if="showNavigation" @click="prevPlant">
+          <mdui-icon-chevron-left></mdui-icon-chevron-left>
+        </mdui-button>
+
+        <div class="plant-header">
+          <div class="plant-icon">
+            <span>🌱</span>
+          </div>
+          <div class="plant-name">{{ statistics.name }}</div>
+          <div class="plant-icon delete-icon" @click="confirmDelete(plants[currentPlantIndex].id)">
+            <span>🗑️</span>
+          </div>
         </div>
-        <div class="plant-name">{{ statistics.name }}</div>
-        <div class="plant-icon delete-icon" @click="deletePlant(statistics.code)">
-          <span>🗑️</span>
-        </div>
+
+        <mdui-button v-if="showNavigation" @click="nextPlant">
+          <mdui-icon-chevron-right></mdui-icon-chevron-right>
+        </mdui-button>
+      </div>
+
+      <!-- Plant counter indicator -->
+      <div class="plant-counter" v-if="showNavigation">
+        {{ currentPlantIndex + 1 }} / {{ plants.length }}
       </div>
     </div>
 
@@ -277,17 +432,32 @@ onUnmounted(() => {
 }
 
 .header-container {
-  padding: 40px 20px 30px;
+  padding: 40px 20px 10px;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.plant-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 800px;
+}
+
+.plant-counter {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 5px;
 }
 
 .plant-header {
   display: flex;
   align-items: center;
-  max-width: 800px;
-  width: 100%;
+  flex-grow: 1;
+  justify-content: center;
 }
 
 .plant-icon {

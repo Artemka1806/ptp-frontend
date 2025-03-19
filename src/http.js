@@ -111,19 +111,19 @@ export const getPlanHistoryByCode = (code) => {
   return $api.get(`/v1/plant/${code}/history?limit=7`);
 };
 
-export const getPlantAdviceByCode = (code) => {
-  return $api.get(`/v1/plant/${code}/advice`);
+export const getPlantAdviceById = (id) => {
+  return $api.get(`/v1/plant/${id}/advice`);
 };
 
-export const getPlantWeeklyAdviceByCode = (code) => {
-  return $api.get(`/v1/plant/${code}/weekly-advice`);
+export const getPlantWeeklyAdviceById = (id) => {
+  return $api.get(`/v1/plant/${id}/weekly-advice`);
 };
 
 export const updatePlantByCode = (code, plantStats) => {
   return $api.put(`/v1/plant/${code}`, plantStats);
 };
 
-export const deletePlantByCode = (code) => {
-  return $api.delete(`/v1/plant/${code}`);
+export const deletePlantById = (id) => {
+  return $api.delete(`/v1/plant/${id}`);
 }
 

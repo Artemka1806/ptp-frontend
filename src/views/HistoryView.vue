@@ -56,7 +56,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { getPlanHistoryByCode, getUserPlants, getPlantWeeklyAdviceByCode } from '@/http'
+import { getPlanHistoryByCode, getUserPlants, getPlantWeeklyAdviceById } from '@/http'
 import PlantStatsChart from '@/components/PlantStatsChart.vue'
 import 'mdui/components/card.js'
 import { alert } from 'mdui/functions/alert.js'
@@ -113,7 +113,7 @@ onMounted(async () => {
         console.log(planHistoryArray.value)
 
         try {
-          const weeklyAdviceResponse = await getPlantWeeklyAdviceByCode(plant.value.code)
+          const weeklyAdviceResponse = await getPlantWeeklyAdviceById(plant.value.id)
           weeklyAdvice.value = weeklyAdviceResponse.data.advice
           weeklyAdviceUpdatedAt.value = weeklyAdviceResponse.data.updated_at || new Date()
           weeklyAdviceLoaded.value = true
