@@ -362,6 +362,10 @@ onUnmounted(() => {
 </template>
 
 <style>
+.advice-card {
+  margin: 0 20px;
+}
+
 .no-plants {
   display: flex;
   flex-direction: column;
