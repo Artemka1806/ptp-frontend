@@ -1,57 +1,59 @@
 <template>
   <div class="history-container" @touchstart="handleTouchStart" @touchend="handleTouchEnd">
-    <LoadingIndicator v-if="loading" />
-    <div v-else>
-      <PlantHeader
-        v-if="plants.length > 0"
-        :name="plants[currentPlantIndex]?.name"
-        :current-index="currentPlantIndex"
-        :total="plants.length"
-        :show-navigation="showNavigation"
-        @prev="prevPlant"
-        @next="nextPlant"
-      />
+    <PlantHeader
+      v-if="plants.length > 0"
+      :name="plants[currentPlantIndex]?.name"
+      :current-index="currentPlantIndex"
+      :total="plants.length"
+      :show-navigation="showNavigation"
+      @prev="prevPlant"
+      @next="nextPlant"
+    />
 
-      <div class="chart-section">
-        <h2>Статистика за останні 7 днів</h2>
-        <PlantStatsChart v-if="planHistoryArray.length > 0" :historyData="planHistoryArray" />
-        <p v-else class="no-data">Дані історії відсутні</p>
-      </div>
-
-      <AiAdviceCard
-        v-if="planHistoryArray.length > 0"
-        :advice="weeklyAdvice"
-        :loading="adviceLoading"
-        :loaded="weeklyAdviceLoaded"
-        :title="'Аналіз даних за тиждень'"
-        :is-weekly="true"
-        @info="showInfoAlert"
-      />
-
-      <div class="data-section">
-        <h2>Необроблені дані</h2>
-        <div class="table-container">
-          <table v-if="planHistoryArray.length > 0" class="history-table">
-            <thead>
-              <tr>
-                <th>Дата</th>
-                <th>Температура (°C)</th>
-                <th>Вологість повітря (%)</th>
-                <th>Вологість ґрунту (%)</th>
-                <th>Рівень освітлення</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="entry in planHistoryArray" :key="entry._id">
-                <td>{{ formatDate(entry.date) }}</td>
-                <td>{{ parseFloat(entry.statistics.temperature).toFixed(1) }}</td>
-                <td>{{ parseFloat(entry.statistics.humidity).toFixed(1) }}</td>
-                <td>{{ parseFloat(entry.statistics.soil_moisture).toFixed(1) }}</td>
-                <td>{{ parseFloat(entry.statistics.light_level).toFixed(1) }}</td>
-              </tr>
-            </tbody>
-          </table>
+    <div class="content-section">
+      <LoadingIndicator v-if="loading" />
+      <div v-else>
+        <div class="chart-section">
+          <h2>Статистика за останні 7 днів</h2>
+          <PlantStatsChart v-if="planHistoryArray.length > 0" :historyData="planHistoryArray" />
           <p v-else class="no-data">Дані історії відсутні</p>
+        </div>
+
+        <AiAdviceCard
+          v-if="planHistoryArray.length > 0"
+          :advice="weeklyAdvice"
+          :loading="adviceLoading"
+          :loaded="weeklyAdviceLoaded"
+          :title="'Аналіз даних за тиждень'"
+          :is-weekly="true"
+          @info="showInfoAlert"
+        />
+
+        <div class="data-section">
+          <h2>Необроблені дані</h2>
+          <div class="table-container">
+            <table v-if="planHistoryArray.length > 0" class="history-table">
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Температура (°C)</th>
+                  <th>Вологість повітря (%)</th>
+                  <th>Вологість ґрунту (%)</th>
+                  <th>Рівень освітлення</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="entry in planHistoryArray" :key="entry._id">
+                  <td>{{ formatDate(entry.date) }}</td>
+                  <td>{{ parseFloat(entry.statistics.temperature).toFixed(1) }}</td>
+                  <td>{{ parseFloat(entry.statistics.humidity).toFixed(1) }}</td>
+                  <td>{{ parseFloat(entry.statistics.soil_moisture).toFixed(1) }}</td>
+                  <td>{{ parseFloat(entry.statistics.light_level).toFixed(1) }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p v-else class="no-data">Дані історії відсутні</p>
+          </div>
         </div>
       </div>
     </div>
@@ -259,6 +261,8 @@ onUnmounted(() => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 .loading {
@@ -400,5 +404,18 @@ h2 {
   opacity: 0.9;
   padding-top: 4px;
   white-space: pre-line;
+}
+
+.content-section {
+  position: relative;
+  min-height: 200px; /* Adjust based on your needs */
+}
+
+/* Make sure PlantHeader stays fixed at the top */
+.plant-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: rgb(var(--mdui-color-surface));
 }
 </style>
