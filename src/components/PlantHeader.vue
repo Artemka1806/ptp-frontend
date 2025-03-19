@@ -54,8 +54,6 @@ defineEmits(['prev', 'next', 'delete'])
   padding: 20px 20px 10px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
 }
 
 .plant-navigation {
@@ -81,8 +79,6 @@ defineEmits(['prev', 'next', 'delete'])
 
 .plant-header {
   display: flex;
-  align-items: center;
-  justify-content: center;
   width: 100%;
   max-width: 800px;
   margin-top: 5px;

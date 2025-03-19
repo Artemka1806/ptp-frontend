@@ -278,10 +278,6 @@ onUnmounted(() => {
   color: rgba(107, 33, 168, 0.7);
 }
 
-.advice-container {
-  margin-bottom: 30px;
-}
-
 .chart-section,
 .data-section {
   margin-bottom: 30px;
@@ -292,6 +288,10 @@ onUnmounted(() => {
 
 .chart-container {
   padding-left: 0px;
+}
+
+.data-section {
+  margin-top: 30px;
 }
 
 h2 {
@@ -408,13 +408,6 @@ h2 {
 
 .content-section {
   position: relative;
-  min-height: 200px; /* Adjust based on your needs */
-}
-
-.plant-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background-color: rgb(var(--mdui-color-surface));
+  min-height: 200px;
 }
 </style>
