@@ -1,27 +1,16 @@
 <template>
   <div class="history-container" @touchstart="handleTouchStart" @touchend="handleTouchEnd">
-    <div v-if="loading" class="loading">Завантаження...</div>
+    <LoadingIndicator v-if="loading" />
     <div v-else>
-      <div class="header-container" v-if="plants.length > 0">
-        <div class="plant-navigation">
-          <mdui-button class="arrow-button" v-if="showNavigation" @click="prevPlant">
-            <mdui-icon-chevron-left></mdui-icon-chevron-left>
-          </mdui-button>
-
-          <div class="plant-counter" v-if="showNavigation">
-            {{ currentPlantIndex + 1 }}/{{ plants.length }}
-          </div>
-
-          <mdui-button class="arrow-button" v-if="showNavigation" @click="nextPlant">
-            <mdui-icon-chevron-right></mdui-icon-chevron-right>
-          </mdui-button>
-        </div>
-
-        <div class="plant-header">
-          <div class="plant-icon"><span>🌱</span></div>
-          <div class="plant-name">{{ plants[currentPlantIndex]?.name || '' }}</div>
-        </div>
-      </div>
+      <PlantHeader
+        v-if="plants.length > 0"
+        :name="plants[currentPlantIndex]?.name"
+        :current-index="currentPlantIndex"
+        :total="plants.length"
+        :show-navigation="showNavigation"
+        @prev="prevPlant"
+        @next="nextPlant"
+      />
 
       <div class="chart-section">
         <h2>Статистика за останні 7 днів</h2>
@@ -29,29 +18,15 @@
         <p v-else class="no-data">Дані історії відсутні</p>
       </div>
 
-      <!-- Modified advice card section with loading state -->
-      <div v-if="planHistoryArray.length > 0" class="advice-container">
-        <mdui-card v-if="adviceLoading" class="advice-card" outline>
-          <div class="card-content advice-content">
-            <div class="advice-header">
-              <div class="advice-icon">🤖</div>
-              <div class="advice-title">Аналіз даних за тиждень</div>
-            </div>
-            <div class="advice-loading">Завантаження поради...</div>
-          </div>
-        </mdui-card>
-
-        <mdui-card v-else-if="weeklyAdviceLoaded" class="advice-card" outline>
-          <div class="card-content advice-content">
-            <div class="advice-header">
-              <div class="advice-icon">🤖</div>
-              <div class="advice-title">Аналіз даних за тиждень</div>
-              <div class="info-icon" @click="showInfoAlert">ℹ️</div>
-            </div>
-            <div class="weekly-advice-text"></div>
-          </div>
-        </mdui-card>
-      </div>
+      <AiAdviceCard
+        v-if="planHistoryArray.length > 0"
+        :advice="weeklyAdvice"
+        :loading="adviceLoading"
+        :loaded="weeklyAdviceLoaded"
+        :title="'Аналіз даних за тиждень'"
+        :is-weekly="true"
+        @info="showInfoAlert"
+      />
 
       <div class="data-section">
         <h2>Необроблені дані</h2>
@@ -94,6 +69,9 @@ import '@mdui/icons/chevron-left.js'
 import '@mdui/icons/chevron-right.js'
 import { alert } from 'mdui/functions/alert.js'
 import Typed from 'typed.js'
+import PlantHeader from '@/components/PlantHeader.vue'
+import AiAdviceCard from '@/components/AiAdviceCard.vue'
+import LoadingIndicator from '@/components/LoadingIndicator.vue'
 
 const userStore = useUserStore()
 const planHistory = ref({})
@@ -277,66 +255,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.header-container {
-  padding: 10px 20px 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.plant-navigation {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 800px;
-  margin-bottom: 15px;
-}
-
-.arrow-button {
-  width: 80px;
-  height: 35px;
-}
-
-.plant-counter {
-  font-size: 22px;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-  text-align: center;
-  flex-grow: 1;
-}
-
-.plant-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 800px;
-  margin-top: 5px;
-}
-
-.plant-icon {
-  width: 46px;
-  height: 46px;
-  background-color: rgb(var(--mdui-color-surface-container-high-dark));
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 20px;
-  margin-left: 10px;
-  font-size: 24px;
-}
-
-.plant-name {
-  font-size: 36px;
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-}
-
 .history-container {
   max-width: 1200px;
   margin: 0 auto;

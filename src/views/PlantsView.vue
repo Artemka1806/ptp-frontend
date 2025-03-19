@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import 'mdui/components/card.js'
 import 'mdui/components/fab.js'
 import 'mdui/components/button.js'
 import '@mdui/icons/chevron-left.js'
@@ -11,9 +10,14 @@ import { exchange, deletePlantById, getPlantAdviceById } from '../http'
 import '@mdui/icons/add.js'
 import Typed from 'typed.js'
 import router from '@/router'
+import PlantHeader from '@/components/PlantHeader.vue'
+import AiAdviceCard from '@/components/AiAdviceCard.vue'
+import LoadingIndicator from '@/components/LoadingIndicator.vue'
+import StatCard from '@/components/StatCard.vue'
 
 const plants = ref([])
 const currentPlantIndex = ref(0)
+const loading = ref(true)
 const statistics = ref({
   name: '',
   code: '',
@@ -147,6 +151,7 @@ const updateTokenAndReconnect = async () => {
 }
 
 const fetchPlants = () => {
+  loading.value = true
   const token = localStorage.getItem('token')
   wsConnection = new WebSocket(import.meta.env.VITE_WS_API_URL + `/v1/user/plants?token=${token}`)
 
@@ -167,8 +172,10 @@ const fetchPlants = () => {
 
         updateCurrentPlantData(false)
       }
+      loading.value = false
     } catch (error) {
       console.error('Помилка обробки даних з WebSocket:', error)
+      loading.value = false
     }
   }
 
@@ -274,7 +281,6 @@ onMounted(() => {
         adviceLoaded.value = false
         getPlantAdviceById(plant.id)
           .then((response) => {
-            console.log('Initial advice:', response.data.advice)
             if (response.data.advice.trim() === '') {
               advice.value = 'Немає поради'
             } else {
@@ -302,103 +308,56 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <LoadingIndicator v-if="loading" />
   <div
+    v-else-if="plants.length > 0"
     class="plant-container"
-    v-if="plants.length > 0"
     @touchstart="handleTouchStart"
     @touchend="handleTouchEnd"
   >
-    <div class="header-container">
-      <div class="plant-navigation">
-        <mdui-button class="arrow-button" v-if="showNavigation" @click="prevPlant">
-          <mdui-icon-chevron-left></mdui-icon-chevron-left>
-        </mdui-button>
-
-        <div class="plant-counter" v-if="showNavigation">
-          {{ currentPlantIndex + 1 }}/{{ plants.length }}
-        </div>
-
-        <mdui-button class="arrow-button" v-if="showNavigation" @click="nextPlant">
-          <mdui-icon-chevron-right></mdui-icon-chevron-right>
-        </mdui-button>
-      </div>
-
-      <div class="plant-header">
-        <div class="plant-icon"><span>🌱</span></div>
-        <div class="plant-name">{{ statistics.name }}</div>
-        <div class="plant-icon delete-icon" @click="confirmDelete(plants[currentPlantIndex].id)">
-          <span>🗑️</span>
-        </div>
-      </div>
-    </div>
+    <PlantHeader
+      :name="statistics.name"
+      :current-index="currentPlantIndex"
+      :total="plants.length"
+      :show-navigation="showNavigation"
+      :show-delete="true"
+      @prev="prevPlant"
+      @next="nextPlant"
+      @delete="confirmDelete(plants[currentPlantIndex].id)"
+    />
 
     <div class="stats-container">
-      <mdui-card class="stat-card temperature" outline>
-        <div class="card-content">
-          <div class="stat-value">
-            <transition name="fade" mode="out-in">
-              <span :key="statistics.temperature">{{ statistics.temperature }}°C</span>
-            </transition>
-          </div>
-          <div class="stat-label">Температура</div>
-        </div>
-      </mdui-card>
+      <StatCard type="temperature" :value="statistics.temperature" label="Температура" unit="°C" />
 
-      <mdui-card class="stat-card humidity" outline>
-        <div class="card-content">
-          <div class="stat-value">
-            <transition name="fade" mode="out-in">
-              <span :key="statistics.humidity">{{ statistics.humidity }}%</span>
-            </transition>
-          </div>
-          <div class="stat-label">Вологість повітря</div>
-        </div>
-      </mdui-card>
+      <StatCard type="humidity" :value="statistics.humidity" label="Вологість повітря" unit="%" />
 
-      <mdui-card class="stat-card soil-moisture" outline>
-        <div class="card-content">
-          <div class="stat-value">
-            <transition name="fade" mode="out-in">
-              <span :key="statistics.soil_moisture">{{ statistics.soil_moisture }}%</span>
-            </transition>
-          </div>
-          <div class="stat-label">Вологість ґрунту</div>
-        </div>
-      </mdui-card>
+      <StatCard
+        type="soil-moisture"
+        :value="statistics.soil_moisture"
+        label="Вологість ґрунту"
+        unit="%"
+      />
 
-      <mdui-card class="stat-card light-level" outline>
-        <div class="card-content">
-          <div class="stat-value">
-            <transition name="fade" mode="out-in">
-              <span :key="statistics.light_level">{{ statistics.light_level }} lx</span>
-            </transition>
-          </div>
-          <div class="stat-label">Рівень світла</div>
-        </div>
-      </mdui-card>
+      <StatCard
+        type="light-level"
+        :value="statistics.light_level"
+        label="Рівень світла"
+        unit=" lx"
+      />
     </div>
 
-    <!-- Modified AI Advice Block -->
-    <div class="advice-container" v-if="adviceLoaded">
-      <!-- Add v-if here -->
-      <mdui-card class="advice-card" outline>
-        <div class="card-content advice-content">
-          <div class="advice-header">
-            <div class="advice-icon">🤖</div>
-            <div class="advice-title">Порада від ШІ</div>
-            <div class="info-icon" @click="showInfoAlert">ℹ️</div>
-          </div>
-          <div class="advice-text"></div>
-          <!-- Display the advice -->
-        </div>
-      </mdui-card>
-    </div>
+    <AiAdviceCard
+      v-if="adviceLoaded"
+      :advice="advice"
+      :loaded="adviceLoaded"
+      @info="showInfoAlert"
+    />
   </div>
   <div class="no-plants" v-else>
-    <mdui-card class="card"><span>У Вас немає рослин</span></mdui-card>
-    <mdui-fab size="large" class="button" @click="addPlant"
-      ><mdui-icon-add slot="icon"></mdui-icon-add
-    ></mdui-fab>
+    <LoadingIndicator text="У Вас немає рослин" />
+    <mdui-fab size="large" class="button" @click="addPlant">
+      <mdui-icon-add slot="icon"></mdui-icon-add>
+    </mdui-fab>
   </div>
 </template>
 
@@ -428,70 +387,6 @@ onUnmounted(() => {
   margin-top: 200px;
 }
 
-.header-container {
-  padding: 20px 20px 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.plant-navigation {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 800px;
-  margin-bottom: 15px;
-}
-
-.arrow-button {
-  width: 80px;
-}
-
-.plant-counter {
-  font-size: 22px;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-  text-align: center;
-  flex-grow: 1;
-}
-
-.plant-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 800px;
-  margin-top: 5px;
-}
-
-.plant-icon {
-  width: 46px;
-  height: 46px;
-  background-color: rgb(var(--mdui-color-surface-container-high-dark));
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 20px;
-  margin-left: 10px;
-  font-size: 24px;
-}
-
-.delete-icon {
-  margin-left: auto;
-  margin-right: 10px;
-  cursor: pointer;
-}
-
-.plant-name {
-  font-size: 36px;
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-}
-
 .stats-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -500,132 +395,6 @@ onUnmounted(() => {
   max-width: 800px;
   margin: 0 auto;
   margin-top: -15px;
-}
-
-.stat-card {
-  border-radius: 12px;
-  overflow: hidden;
-  transition: box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.card-content {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100px;
-}
-
-.temperature {
-  background-color: #fff5f5;
-  color: #b91c1c;
-  border: 1px solid rgba(185, 28, 28, 0.15);
-}
-
-.humidity {
-  background-color: #f0f7ff;
-  color: #1e40af;
-  border: 1px solid rgba(30, 64, 175, 0.15);
-}
-
-.soil-moisture {
-  background-color: #f0fbf0;
-  color: #15803d;
-  border: 1px solid rgba(21, 128, 61, 0.15);
-}
-
-.light-level {
-  background-color: #fffbeb;
-  color: #b45309;
-  border: 1px solid rgba(180, 83, 9, 0.15);
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 14px;
-  opacity: 0.85;
-}
-
-.advice-container {
-  padding: 0 20px 20px;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.info-icon {
-  font-size: 14px;
-  margin-left: auto;
-  cursor: pointer;
-  background-color: rgba(107, 33, 168, 0.1);
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease;
-  position: relative;
-  top: -2px;
-  padding-bottom: 0.7px;
-}
-
-.info-icon:hover {
-  background-color: rgba(107, 33, 168, 0.2);
-}
-
-.advice-card {
-  border-radius: 12px;
-  overflow: hidden;
-  transition: box-shadow 0.2s ease;
-  background-color: #f3e8ff;
-  color: #6b21a8;
-  min-width: 50%;
-  border: 1px solid rgba(107, 33, 168, 0.15);
-}
-
-.advice-card:hover {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.advice-content {
-  align-items: flex-start;
-  padding: 16px 20px;
-}
-
-.advice-header {
-  display: flex;
-  align-items: center;
-  align-self: flex-start;
-  margin-bottom: 14px;
-  width: 100%;
-}
-
-.advice-icon {
-  font-size: 18px;
-  margin-right: 8px;
-}
-
-.advice-title {
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.advice-text {
-  width: 100%;
-  font-size: 16px;
-  opacity: 0.9;
-  padding-top: 4px;
-  white-space: pre-line;
 }
 
 .fade-enter-active,
