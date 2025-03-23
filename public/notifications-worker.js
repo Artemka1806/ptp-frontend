@@ -3,7 +3,7 @@ self.addEventListener('push', event => {
   const title = data.title || "Сповіщення";
   const options = {
     body: data.body,
-    icon: '/icons/icon-256x256.png',
+    icon: '/icons/icon-128x128.png',
     data: { url: data.url }
   };
   event.waitUntil(
