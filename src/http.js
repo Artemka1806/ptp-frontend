@@ -98,6 +98,10 @@ export const getUserPlants = () => {
   return $api.get('/v1/user/plants');
 };
 
+export const subscribeToNotifications = (subscription) => {
+  return $api.post('/v1/subscription/subscribe', subscription);
+}
+
 // Plant endpoints
 export const createPlant = (plantData) => {
   return $api.post('/v1/plant', plantData);

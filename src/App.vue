@@ -6,7 +6,7 @@ import { setColorScheme } from 'mdui/functions/setColorScheme.js'
 import 'mdui/components/button.js'
 import '@khmyznikov/pwa-install'
 import { useUserStore } from './stores/user'
-import { getMe } from '@/http'
+import { getMe, subscribeToNotifications } from '@/http'
 import { computed } from 'vue'
 
 const userStore = useUserStore()
@@ -28,6 +28,45 @@ getUser()
 setColorScheme('#78dc77')
 
 const isUserLoggedIn = computed(() => !!userStore.user.email)
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('/notifications-worker.js')
+    .then((registration) => {
+      console.log('Service Worker зареєстровано', registration)
+    })
+    .catch((error) => {
+      console.error('Service Worker не зареєстровано', error)
+    })
+}
+
+function urlB64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
+
+// Subscribe to push notifications
+navigator.serviceWorker.ready.then((registration) => {
+  const vapidPublicKey = import.meta.env.VITE_WEBPUSH_PUBLIC_KEY
+  const convertedKey = urlB64ToUint8Array(vapidPublicKey)
+  registration.pushManager
+    .subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: convertedKey,
+    })
+    .then((subscription) => {
+      subscribeToNotifications(subscription)
+        .then(() => console.log('Subscription sent to the backend successfully'))
+        .catch((err) => console.error('Failed to send subscription to the backend', err))
+    })
+    .catch((err) => console.error('Failed to subscribe to push notifications', err))
+})
 </script>
 
 <template>
