@@ -53,27 +53,11 @@ onMounted(() => {
   window.addEventListener('online', handleOnlineStatusChange)
   window.addEventListener('offline', handleOnlineStatusChange)
 
-  // Реєструємо cache worker для офлайн роботи
+  // Now we only need to register one service worker
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker
-      .register('/sw.js')
-      .then((registration) => {
-        console.log('Cache Service Worker зареєстровано', registration)
-      })
-      .catch((error) => {
-        console.error('Cache Service Worker не зареєстровано', error)
-      })
-
-    // Зберігаємо існуючий код для notification worker
-    navigator.serviceWorker
-      .register('/notifications-worker.js')
-      .then((registration) => {
-        console.log('Notification Service Worker зареєстровано', registration)
-        checkNotificationSubscription()
-      })
-      .catch((error) => {
-        console.error('Notification Service Worker не зареєстровано', error)
-      })
+    navigator.serviceWorker.ready.then((registration) => {
+      checkNotificationSubscription(registration)
+    })
   }
 })
 
@@ -90,7 +74,7 @@ function urlB64ToUint8Array(base64String) {
   return outputArray
 }
 
-const checkNotificationSubscription = async () => {
+const checkNotificationSubscription = async (registration) => {
   const token = localStorage.getItem('token')
   if (!token) {
     console.log('Користувач не авторизований')
@@ -110,24 +94,22 @@ const checkNotificationSubscription = async () => {
     return
   }
 
-  navigator.serviceWorker.ready.then((registration) => {
-    const vapidPublicKey = import.meta.env.VITE_WEBPUSH_PUBLIC_KEY
-    const convertedKey = urlB64ToUint8Array(vapidPublicKey)
-    registration.pushManager
-      .subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: convertedKey,
-      })
-      .then((subscription) => {
-        subscribeToNotifications(subscription)
-          .then(() => {
-            console.log('Успішно підписано на сповіщення')
-            localStorage.setItem('notificationSubscription', 'subscribed')
-          })
-          .catch((err) => console.error('Помилка при підписці на сповіщення: ', err))
-      })
-      .catch((err) => console.error('Не вдалося підписатися на сповіщення', err))
-  })
+  const vapidPublicKey = import.meta.env.VITE_WEBPUSH_PUBLIC_KEY
+  const convertedKey = urlB64ToUint8Array(vapidPublicKey)
+  registration.pushManager
+    .subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: convertedKey,
+    })
+    .then((subscription) => {
+      subscribeToNotifications(subscription)
+        .then(() => {
+          console.log('Успішно підписано на сповіщення')
+          localStorage.setItem('notificationSubscription', 'subscribed')
+        })
+        .catch((err) => console.error('Помилка при підписці на сповіщення: ', err))
+    })
+    .catch((err) => console.error('Не вдалося підписатися на сповіщення', err))
 }
 </script>
 

@@ -1,3 +1,9 @@
+import { precacheAndRoute } from 'workbox-precaching';
+
+// Use the precache manifest injected by the plugin
+precacheAndRoute(self.__WB_MANIFEST);
+
+// Push notification handler
 self.addEventListener('push', event => {
   const data = event.data.json();
   const title = data.title || "Сповіщення";
@@ -11,6 +17,7 @@ self.addEventListener('push', event => {
   );
 });
 
+// Notification click handler
 self.addEventListener('notificationclick', event => {
   event.notification.close(); // Закриваємо сповіщення
   const url = event.notification.data.url;
