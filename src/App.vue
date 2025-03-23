@@ -6,26 +6,76 @@ import { setColorScheme } from 'mdui/functions/setColorScheme.js'
 import 'mdui/components/button.js'
 import '@khmyznikov/pwa-install'
 import { useUserStore } from './stores/user'
-import { getMe, subscribeToNotifications } from '@/http'
-import { computed } from 'vue'
+import { getMe, subscribeToNotifications, syncOfflineRequests } from '@/http'
+import { computed, ref, onMounted } from 'vue'
+import { offlineStorage } from './utils/offlineStorage'
 
 const userStore = useUserStore()
+const isOffline = ref(false)
 
 const getUser = async () => {
   try {
     const response = await getMe()
     if (response && response.data) {
       userStore.setUser(response.data)
+      // Також зберігаємо базові дані користувача локально для офлайн режиму
+      offlineStorage.saveData('user', response.data)
     }
     return response
   } catch (error) {
+    // Якщо офлайн, спробуємо отримати дані з кешу
+    if (!navigator.onLine) {
+      const userData = offlineStorage.getData('user')
+      if (userData) {
+        userStore.setUser(userData)
+      }
+    }
     console.error(error)
   }
 }
 
-getUser()
+// Перевіряємо стан мережі та синхронізуємо дані при відновленні
+const handleOnlineStatusChange = () => {
+  isOffline.value = !navigator.onLine
 
-setColorScheme('#78dc77')
+  if (navigator.onLine) {
+    // Коли мережа відновлена, синхронізуємо накопичені запити
+    syncOfflineRequests()
+  }
+}
+
+onMounted(() => {
+  getUser()
+  setColorScheme('#78dc77')
+
+  // Ініціалізація стану мережі та встановлення слухачів
+  isOffline.value = !navigator.onLine
+  window.addEventListener('online', handleOnlineStatusChange)
+  window.addEventListener('offline', handleOnlineStatusChange)
+
+  // Реєструємо cache worker для офлайн роботи
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        console.log('Cache Service Worker зареєстровано', registration)
+      })
+      .catch((error) => {
+        console.error('Cache Service Worker не зареєстровано', error)
+      })
+
+    // Зберігаємо існуючий код для notification worker
+    navigator.serviceWorker
+      .register('/notifications-worker.js')
+      .then((registration) => {
+        console.log('Notification Service Worker зареєстровано', registration)
+        checkNotificationSubscription()
+      })
+      .catch((error) => {
+        console.error('Notification Service Worker не зареєстровано', error)
+      })
+  }
+})
 
 const isUserLoggedIn = computed(() => !!userStore.user.email)
 
@@ -79,22 +129,11 @@ const checkNotificationSubscription = async () => {
       .catch((err) => console.error('Не вдалося підписатися на сповіщення', err))
   })
 }
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker
-    .register('/notifications-worker.js')
-    .then((registration) => {
-      console.log('Service Worker зареєстровано', registration)
-      checkNotificationSubscription()
-    })
-    .catch((error) => {
-      console.error('Service Worker не зареєстровано', error)
-    })
-}
 </script>
 
 <template>
   <main>
+    <div v-if="isOffline" class="offline-banner">Ви працюєте в офлайн режимі</div>
     <RouterView />
   </main>
   <FooterComponent v-if="isUserLoggedIn" />
@@ -109,3 +148,15 @@ if ('serviceWorker' in navigator) {
   >
   </pwa-install>
 </template>
+
+<style scoped>
+.offline-banner {
+  background-color: #f8d7da;
+  color: #842029;
+  padding: 8px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+</style>

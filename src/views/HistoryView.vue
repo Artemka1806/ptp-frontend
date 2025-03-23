@@ -64,6 +64,7 @@
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { getPlanHistoryById, getUserPlants, getPlantWeeklyAdviceById } from '@/http'
+import { offlineStorage } from '@/utils/offlineStorage'
 import PlantStatsChart from '@/components/PlantStatsChart.vue'
 import 'mdui/components/card.js'
 import 'mdui/components/button.js'
@@ -88,6 +89,8 @@ const weeklyAdviceUpdatedAt = ref(null)
 let typedInstance = null
 const touchStartX = ref(0)
 const touchEndX = ref(0)
+const isOffline = ref(false)
+const lastFetchTime = ref(null)
 
 // Computed property to determine if navigation arrows should be shown
 const showNavigation = computed(() => plants.value.length > 1)
@@ -166,8 +169,27 @@ const loadPlantAdvice = async (plantId) => {
     weeklyAdvice.value = weeklyAdviceResponse.data.advice
     weeklyAdviceUpdatedAt.value = weeklyAdviceResponse.data.updated_at || new Date()
     weeklyAdviceLoaded.value = true
+
+    // Зберігаємо пораду для офлайн режиму
+    if (navigator.onLine && !weeklyAdviceResponse.offline) {
+      offlineStorage.saveApiResponse(
+        `/v1/plant/${plantId}/weekly-advice`,
+        weeklyAdviceResponse.data,
+      )
+    }
   } catch (adviceError) {
     console.error('Error fetching weekly advice:', adviceError)
+
+    // Спробуємо отримати пораду з кешу, якщо ми офлайн
+    if (!navigator.onLine) {
+      isOffline.value = true
+      const cachedAdvice = offlineStorage.getApiResponse(`/v1/plant/${plantId}/weekly-advice`)
+      if (cachedAdvice) {
+        weeklyAdvice.value = cachedAdvice.advice
+        weeklyAdviceUpdatedAt.value = cachedAdvice.updated_at || null
+        weeklyAdviceLoaded.value = true
+      }
+    }
   } finally {
     adviceLoading.value = false
   }
@@ -191,12 +213,40 @@ const loadPlantData = async () => {
 
     // Fetch history data for the current plant
     if (currentPlant.id) {
-      const historyResponse = await getPlanHistoryById(currentPlant.id)
-      planHistory.value = historyResponse.data
+      try {
+        const historyResponse = await getPlanHistoryById(currentPlant.id)
+        planHistory.value = historyResponse.data
 
-      planHistoryArray.value = Array.isArray(historyResponse.data)
-        ? historyResponse.data
-        : [historyResponse.data]
+        planHistoryArray.value = Array.isArray(historyResponse.data)
+          ? historyResponse.data
+          : [historyResponse.data]
+
+        // Зберігаємо отримані дані в локальне сховище для офлайн режиму
+        if (navigator.onLine && !historyResponse.offline) {
+          offlineStorage.saveApiResponse(
+            `/v1/plant/${currentPlant.id}/history?limit=7`,
+            historyResponse.data,
+          )
+          lastFetchTime.value = new Date()
+          isOffline.value = false
+        } else if (historyResponse.offline) {
+          isOffline.value = true
+          lastFetchTime.value = null
+        }
+      } catch (error) {
+        console.error('Error loading plant history:', error)
+        // Якщо помилка і ми офлайн, спробуємо отримати дані з кешу
+        if (!navigator.onLine) {
+          isOffline.value = true
+          const cachedHistory = offlineStorage.getApiResponse(
+            `/v1/plant/${currentPlant.id}/history?limit=7`,
+          )
+          if (cachedHistory) {
+            planHistory.value = cachedHistory
+            planHistoryArray.value = Array.isArray(cachedHistory) ? cachedHistory : [cachedHistory]
+          }
+        }
+      }
 
       // Now that basic data is loaded, set loading to false
       loading.value = false
@@ -213,6 +263,20 @@ const loadPlantData = async () => {
 }
 
 onMounted(async () => {
+  // Додаємо слухачі для онлайн/офлайн статусу
+  window.addEventListener('online', () => {
+    isOffline.value = false
+    // Перезавантажуємо дані, коли повертаємось онлайн
+    loadPlantData()
+  })
+
+  window.addEventListener('offline', () => {
+    isOffline.value = true
+  })
+
+  // Встановлюємо початковий статус
+  isOffline.value = !navigator.onLine
+
   try {
     // Fetch all user plants
     const response = await getUserPlants()
@@ -253,6 +317,16 @@ onUnmounted(() => {
   if (typedInstance) {
     typedInstance.destroy()
   }
+
+  // Видаляємо слухачів стану мережі
+  window.removeEventListener('online', () => {
+    isOffline.value = false
+    loadPlantData()
+  })
+
+  window.removeEventListener('offline', () => {
+    isOffline.value = true
+  })
 })
 </script>
 

@@ -7,6 +7,7 @@ import '@mdui/icons/chevron-right.js'
 import { confirm } from 'mdui/functions/confirm.js'
 import { alert } from 'mdui/functions/alert.js'
 import { exchange, deletePlantById, getPlantAdviceById } from '../http'
+import { OfflineAwareWebSocket } from '@/utils/offlineWebSocket'
 import '@mdui/icons/add.js'
 import Typed from 'typed.js'
 import router from '@/router'
@@ -31,6 +32,8 @@ const adviceLoaded = ref(false)
 const adviceUpdatedAt = ref(null)
 const touchStartX = ref(0)
 const touchEndX = ref(0)
+const isOffline = ref(false)
+const lastUpdatedAt = ref(null)
 
 // Computed property to determine if navigation arrows should be shown
 const showNavigation = computed(() => plants.value.length > 1)
@@ -153,15 +156,31 @@ const updateTokenAndReconnect = async () => {
 const fetchPlants = () => {
   loading.value = true
   const token = localStorage.getItem('token')
-  wsConnection = new WebSocket(import.meta.env.VITE_WS_API_URL + `/v1/user/plants?token=${token}`)
+  const wsUrl = import.meta.env.VITE_WS_API_URL + `/v1/user/plants?token=${token}`
 
-  wsConnection.onopen = () => {
-    console.log("WebSocket-з'єднання встановлено")
+  // Використовуємо наш спеціальний клас замість нативного WebSocket
+  if (wsConnection) {
+    wsConnection.close()
   }
 
-  wsConnection.onmessage = (event) => {
+  wsConnection = new OfflineAwareWebSocket(wsUrl, {
+    storageKey: 'user-plants',
+    reconnectInterval: 5000,
+    maxReconnectAttempts: 3,
+  })
+
+  // Обробка отриманих повідомлень (як онлайн, так і офлайн)
+  wsConnection.on('message', (event) => {
     try {
-      const data = JSON.parse(event.data)
+      const data = event.data
+      isOffline.value = event.offline || false
+
+      if (event.timestamp) {
+        lastUpdatedAt.value = new Date(event.timestamp)
+      } else {
+        lastUpdatedAt.value = new Date()
+      }
+
       if (data?.plants && data.plants.length > 0) {
         plants.value = data.plants
 
@@ -177,16 +196,18 @@ const fetchPlants = () => {
       console.error('Помилка обробки даних з WebSocket:', error)
       loading.value = false
     }
-  }
+  })
 
-  wsConnection.onerror = (error) => {
+  wsConnection.on('error', (error) => {
     console.error('Помилка WebSocket:', error)
-    updateTokenAndReconnect()
-  }
+    if (!error.offline) {
+      updateTokenAndReconnect()
+    }
+    loading.value = false
+  })
 
-  wsConnection.onclose = (event) => {
-    console.log("WebSocket-з'єднання закрито:", event)
-  }
+  // Запускаємо підключення
+  wsConnection.connect()
 }
 
 const addPlant = () => {
@@ -315,6 +336,11 @@ onUnmounted(() => {
     @touchstart="handleTouchStart"
     @touchend="handleTouchEnd"
   >
+    <div v-if="isOffline" class="offline-message">
+      Офлайн режим • Дані оновлено:
+      {{ lastUpdatedAt ? lastUpdatedAt.toLocaleString() : 'невідомо' }}
+    </div>
+
     <PlantHeader
       :name="statistics.name"
       :current-index="currentPlantIndex"
@@ -409,5 +435,15 @@ onUnmounted(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.offline-message {
+  background-color: #f8d7da;
+  color: #842029;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 14px;
+  border-radius: 4px;
+  margin: 8px 16px;
 }
 </style>

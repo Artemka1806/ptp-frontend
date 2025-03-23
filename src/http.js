@@ -1,5 +1,6 @@
 import axios from 'axios';
 import router from './router';
+import { offlineStorage } from './utils/offlineStorage';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -8,14 +9,69 @@ const $api = axios.create({
   baseURL: API_URL,
 });
 
-$api.interceptors.request.use((config) => {
-  config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
+$api.interceptors.request.use(async (config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  if (!navigator.onLine) {
+    // Для GET запитів повертаємо кешовані дані
+    if (config.method === 'get') {
+      const cachedData = offlineStorage.getApiResponse(config.url);
+      if (cachedData) {
+        const mockResponse = {
+          data: cachedData,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: config,
+          offline: true
+        };
+
+        return Promise.resolve({
+          ...config,
+          adapter: () => Promise.resolve(mockResponse)
+        });
+      }
+
+      // Якщо немає кешованих даних, повідомляємо про помилку
+      return Promise.reject({
+        message: 'No cached data available for this request',
+        offline: true,
+        noCache: true
+      });
+    } else {
+      // Для не-GET запитів додаємо до черги синхронізації
+      offlineStorage.addToSyncQueue(config.method, config.url, config.data);
+      return Promise.resolve({
+        ...config,
+        adapter: () => Promise.resolve({
+          data: { message: 'Request queued for sync', offline: true },
+          status: 202,
+          statusText: 'Accepted',
+          headers: {},
+          config: config
+        })
+      });
+    }
+  }
+
   return config;
-});
+}, error => Promise.reject(error));
 
 $api.interceptors.response.use(
-  response => response,
+  response => {
+    // Кешуємо відповіді для GET запитів за нормальної мережі
+    if (response.config.method === 'get' && navigator.onLine) {
+      offlineStorage.saveApiResponse(response.config.url, response.data);
+    }
+    return response;
+  },
   async error => {
+    // Оброблення помилок офлайн-режиму було переміщено до request interceptor
+    // Це обробляє тільки реальні помилки від сервера
+
     const originalRequest = error.config;
     if (
       error.response &&
@@ -37,6 +93,12 @@ $api.interceptors.response.use(
         return Promise.reject(e);
       }
     }
+
+    // Для офлайн-помилок без кешу - показуємо повідомлення користувачу
+    if (error.offline && error.noCache) {
+      console.warn('No cached data available while offline');
+    }
+
     return Promise.reject(error);
   }
 );
@@ -129,5 +191,26 @@ export const updatePlantByCode = (code, plantStats) => {
 
 export const deletePlantById = (id) => {
   return $api.delete(`/v1/plant/${id}`);
+}
+
+// Function to sync offline requests
+export async function syncOfflineRequests() {
+  const queue = offlineStorage.getSyncQueue();
+
+  for (let i = 0; i < queue.length; i++) {
+    const request = queue[i];
+    try {
+      await $api({
+        method: request.method,
+        url: request.endpoint,
+        data: request.data
+      });
+      offlineStorage.clearSyncItem(i);
+      i--; // Adjust index after removing item from queue
+    } catch (error) {
+      console.error('Sync error:', error);
+      // Leave request in queue for next attempt
+    }
+  }
 }
 
