@@ -41,6 +41,12 @@ function urlB64ToUint8Array(base64String) {
 }
 
 const checkNotificationSubscription = async () => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    console.log('Користувач не авторизований')
+    return
+  }
+
   const notificationStatus = localStorage.getItem('notificationSubscription')
 
   if (notificationStatus === 'subscribed') {
