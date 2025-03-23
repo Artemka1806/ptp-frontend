@@ -29,17 +29,6 @@ setColorScheme('#78dc77')
 
 const isUserLoggedIn = computed(() => !!userStore.user.email)
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker
-    .register('/notifications-worker.js')
-    .then((registration) => {
-      console.log('Service Worker зареєстровано', registration)
-    })
-    .catch((error) => {
-      console.error('Service Worker не зареєстровано', error)
-    })
-}
-
 function urlB64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
@@ -51,22 +40,51 @@ function urlB64ToUint8Array(base64String) {
   return outputArray
 }
 
-// Subscribe to push notifications
-navigator.serviceWorker.ready.then((registration) => {
-  const vapidPublicKey = import.meta.env.VITE_WEBPUSH_PUBLIC_KEY
-  const convertedKey = urlB64ToUint8Array(vapidPublicKey)
-  registration.pushManager
-    .subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: convertedKey,
+const checkNotificationSubscription = async () => {
+  const notificationStatus = localStorage.getItem('notificationSubscription')
+
+  if (notificationStatus === 'subscribed') {
+    return
+  }
+
+  const permission = await Notification.requestPermission()
+
+  if (permission !== 'granted') {
+    console.log('Сповіщення не дозволені користувачем')
+    return
+  }
+
+  navigator.serviceWorker.ready.then((registration) => {
+    const vapidPublicKey = import.meta.env.VITE_WEBPUSH_PUBLIC_KEY
+    const convertedKey = urlB64ToUint8Array(vapidPublicKey)
+    registration.pushManager
+      .subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedKey,
+      })
+      .then((subscription) => {
+        subscribeToNotifications(subscription)
+          .then(() => {
+            console.log('Успішно підписано на сповіщення')
+            localStorage.setItem('notificationSubscription', 'subscribed')
+          })
+          .catch((err) => console.error('Помилка при підписці на сповіщення: ', err))
+      })
+      .catch((err) => console.error('Не вдалося підписатися на сповіщення', err))
+  })
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('/notifications-worker.js')
+    .then((registration) => {
+      console.log('Service Worker зареєстровано', registration)
+      checkNotificationSubscription()
     })
-    .then((subscription) => {
-      subscribeToNotifications(subscription)
-        .then(() => console.log('Subscription sent to the backend successfully'))
-        .catch((err) => console.error('Failed to send subscription to the backend', err))
+    .catch((error) => {
+      console.error('Service Worker не зареєстровано', error)
     })
-    .catch((err) => console.error('Failed to subscribe to push notifications', err))
-})
+}
 </script>
 
 <template>
